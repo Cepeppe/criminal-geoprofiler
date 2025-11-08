@@ -279,6 +279,7 @@
     window.addEventListener('mouseup', ()=>{ dragging = false; document.body.classList.remove('resizing'); });
   })();
 
+  
   // --- Dataset & presets ---
   // DOPO: etichette con data + luogo (tabella fornita)
   const MOSTRO_ALL = [
