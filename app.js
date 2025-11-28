@@ -1,4 +1,4 @@
-/* Criminal Geoprofiler — Mostro di Firenze (responsive + modal fix) */
+/* Criminal Geoprofiler - Mostro di Firenze (responsive + modal fix) */
 
 (() => {
   // --- Map init ---
@@ -118,10 +118,10 @@
       const li = document.createElement('li');
 
       if (m.label){
-        // Split su " — " (em dash) o " - "
+        // Split su " - " (em dash) o " - "
         const parts = m.label.split(/\s—\s|\s-\s/);
         const date  = parts[0] || m.label;
-        const place = parts.slice(1).join(' — ') || '';
+        const place = parts.slice(1).join(' - ') || '';
 
         li.innerHTML = `
           <span class="idx">#${i+1}</span>
@@ -283,27 +283,27 @@
   // --- Dataset & presets ---
   // DOPO: etichette con data + luogo (tabella fornita)
   const MOSTRO_ALL = [
-    { label: '21 ago 1968 — Castelletti di Signa',                         lat: 43.794588, lng: 11.082310 },
-    { label: '14 set 1974 — Fontanine di Rabatta (Sagginale, Borgo San Lorenzo)', lat: 43.939006, lng: 11.416401 },
-    { label: '6 giu 1981 — Mosciano (Scandicci)',                          lat: 43.733137, lng: 11.168896 },
-    { label: '22 ott 1981 — Le Bartoline (Travalle, Calenzano)',           lat: 43.871624, lng: 11.159006 },
-    { label: '19 giu 1982 — Baccaiano (Montespertoli)',                    lat: 43.654490, lng: 11.090818 },
-    { label: '9 set 1983 — Giogoli (Galluzzo, Firenze)',                   lat: 43.732229, lng: 11.206382 },
-    { label: '29 lug 1984 — La Boschetta (Vicchio)',                       lat: 43.918821, lng: 11.497872 },
-    { label: '7 8 set 1985 — Scopeti (San Casciano in Val di Pesa)',       lat: 43.694574, lng: 11.202129 }
+    { label: '21 ago 1968 - Castelletti di Signa',                         lat: 43.794588, lng: 11.082310 },
+    { label: '14 set 1974 - Fontanine di Rabatta (Sagginale, Borgo San Lorenzo)', lat: 43.939006, lng: 11.416401 },
+    { label: '6 giu 1981 - Mosciano (Scandicci)',                          lat: 43.733137, lng: 11.168896 },
+    { label: '22 ott 1981 - Le Bartoline (Travalle, Calenzano)',           lat: 43.871624, lng: 11.159006 },
+    { label: '19 giu 1982 - Baccaiano (Montespertoli)',                    lat: 43.654490, lng: 11.090818 },
+    { label: '9 set 1983 - Giogoli (Galluzzo, Firenze)',                   lat: 43.732229, lng: 11.206382 },
+    { label: '29 lug 1984 - La Boschetta (Vicchio)',                       lat: 43.918821, lng: 11.497872 },
+    { label: '7 8 set 1985 - Scopeti (San Casciano in Val di Pesa)',       lat: 43.694574, lng: 11.202129 }
   ];
 
   const CLUSTER_SW = [
-    { label: '6 giu 1981 — Mosciano (Scandicci)',                          lat: 43.733137, lng: 11.168896 },
-    { label: '9 set 1983 — Giogoli (Galluzzo, Firenze)',                   lat: 43.732229, lng: 11.206382 },
-    { label: '7-8 set 1985 — Scopeti (San Casciano in Val di Pesa)',       lat: 43.694574, lng: 11.202129 },
-    { label: '19 giu 1982 — Baccaiano (Montespertoli)',                    lat: 43.654490, lng: 11.090818 }
+    { label: '6 giu 1981 - Mosciano (Scandicci)',                          lat: 43.733137, lng: 11.168896 },
+    { label: '9 set 1983 - Giogoli (Galluzzo, Firenze)',                   lat: 43.732229, lng: 11.206382 },
+    { label: '7-8 set 1985 - Scopeti (San Casciano in Val di Pesa)',       lat: 43.694574, lng: 11.202129 },
+    { label: '19 giu 1982 - Baccaiano (Montespertoli)',                    lat: 43.654490, lng: 11.090818 }
   ];
 
   const CLUSTER_N = [
-    { label: '22 ott 1981 — Le Bartoline (Travalle, Calenzano)',           lat: 43.871624, lng: 11.159006 },
-    { label: '14 set 1974 — Fontanine di Rabatta (Sagginale, Borgo San Lorenzo)', lat: 43.939006, lng: 11.416401 },
-    { label: '29 lug 1984 — La Boschetta (Vicchio)',                       lat: 43.918821, lng: 11.497872 }
+    { label: '22 ott 1981 - Le Bartoline (Travalle, Calenzano)',           lat: 43.871624, lng: 11.159006 },
+    { label: '14 set 1974 - Fontanine di Rabatta (Sagginale, Borgo San Lorenzo)', lat: 43.939006, lng: 11.416401 },
+    { label: '29 lug 1984 - La Boschetta (Vicchio)',                       lat: 43.918821, lng: 11.497872 }
   ];
   function removeAllMarkers(){ markers.forEach(m => map.removeLayer(m.marker)); markers = []; refreshList(); }
   function loadPoints(arr, clearBefore){

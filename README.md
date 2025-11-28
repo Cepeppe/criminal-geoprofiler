@@ -1,4 +1,4 @@
-# Criminal Geoprofiler — Mostro di Firenze
+# Criminal Geoprofiler - Mostro di Firenze
 
 Applicazione **100% client‑side** per sperimentare, in modo didattico, tecniche di *geoprofilazione* su una mappa interattiva.
 L’app permette di inserire/gestire **punti‑evento** e di calcolare una **superficie di verosimiglianza** con più metodi noti
@@ -64,10 +64,10 @@ Puoi rinominare/ricollocare l’immagine del banner aggiornando l’URL in `styl
 
 ## Avvio rapido
 
-**Metodo 1 — doppio click (solo per test veloce):**  
+**Metodo 1 - doppio click (solo per test veloce):**  
 apri `index.html` direttamente dal filesystem. *Attenzione*: alcune policy dei browser potrebbero limitare funzionalità in `file://`.
 
-**Metodo 2 — piccolo server statico (consigliato):**
+**Metodo 2 - piccolo server statico (consigliato):**
 
 - Python:
   ```bash
@@ -156,7 +156,7 @@ Nel pannello dedicato trovi tre preset **(provinciale, cluster SW, cluster N)** 
 
 ## Crediti e licenza
 
-- Mappe: © OpenStreetMap contributors — tiles tramite `tile.openstreetmap.org`.
+- Mappe: © OpenStreetMap contributors - tiles tramite `tile.openstreetmap.org`.
 - Librerie: [Leaflet](https://leafletjs.com/), [Leaflet.heat](https://github.com/Leaflet/Leaflet.heat).
 
 **Licenza**: BSD 2-Clause License
