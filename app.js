@@ -290,13 +290,13 @@
     { label: '19 giu 1982 — Baccaiano (Montespertoli)',                    lat: 43.654490, lng: 11.090818 },
     { label: '9 set 1983 — Giogoli (Galluzzo, Firenze)',                   lat: 43.732229, lng: 11.206382 },
     { label: '29 lug 1984 — La Boschetta (Vicchio)',                       lat: 43.918821, lng: 11.497872 },
-    { label: '7–8 set 1985 — Scopeti (San Casciano in Val di Pesa)',       lat: 43.694574, lng: 11.202129 }
+    { label: '7 8 set 1985 — Scopeti (San Casciano in Val di Pesa)',       lat: 43.694574, lng: 11.202129 }
   ];
 
   const CLUSTER_SW = [
     { label: '6 giu 1981 — Mosciano (Scandicci)',                          lat: 43.733137, lng: 11.168896 },
     { label: '9 set 1983 — Giogoli (Galluzzo, Firenze)',                   lat: 43.732229, lng: 11.206382 },
-    { label: '7–8 set 1985 — Scopeti (San Casciano in Val di Pesa)',       lat: 43.694574, lng: 11.202129 },
+    { label: '7-8 set 1985 — Scopeti (San Casciano in Val di Pesa)',       lat: 43.694574, lng: 11.202129 },
     { label: '19 giu 1982 — Baccaiano (Montespertoli)',                    lat: 43.654490, lng: 11.090818 }
   ];
 
