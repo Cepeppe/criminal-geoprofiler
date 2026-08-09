@@ -1,329 +1,514 @@
 <!doctype html>
-<html lang="it">
+<html lang="it" data-theme="dark">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Criminal Geoprofiler - Mostro di Firenze</title>
 
-  <!-- SEO base -->
-  <meta name="description" content="Web-app didattica 100% client-side per la geoprofilazione: inserisci punti su mappa e genera heatmap con Rossmo/CGT, KDE, Centro di gravità e Journey-to-crime. Preset per il caso Mostro di Firenze." />
-  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" />
-  <meta name="keywords" content="geoprofilazione, geoprofiling, Criminal Geographic Targeting, CGT, Rossmo, KDE, kernel density, heatmap, journey to crime, centro di gravità, mean center, criminologia, GIS, Leaflet, Mostro di Firenze, MdF, profilazione geografica" />
-  <link rel="canonical" href="https://example.com/" />
+  <meta name="description" content="Strumento didattico 100% client-side di geoprofilazione criminale: inserisci punti-evento su mappa e calcola superfici di probabilità con Rossmo/CGT, KDE, centro di gravità e journey-to-crime. Dataset del caso Mostro di Firenze incluso." />
+  <meta name="keywords" content="geoprofilazione, geographic profiling, Criminal Geographic Targeting, CGT, Rossmo, KDE, kernel density, journey to crime, centrografia, hit score, criminologia, GIS, Leaflet, Mostro di Firenze" />
+  <meta name="author" content="Giuseppe Sorgentone" />
+  <link rel="canonical" href="https://cepeppe.github.io/criminal-geoprofiler/" />
 
-  <!-- Preferenze tema -->
   <meta name="color-scheme" content="dark light" />
-  <meta name="theme-color" content="#0f172a" />
+  <!-- Aggiornata da main.js al cambio di tema -->
+  <meta name="theme-color" content="#080c18" />
 
-  <!-- Open Graph / Social (senza immagine) -->
   <meta property="og:title" content="Criminal Geoprofiler - Mostro di Firenze" />
-  <meta property="og:description" content="App client-side per esplorare metodi di geoprofilazione (Rossmo/CGT, KDE, Mean Center, Journey-to-crime) con heatmap interattive." />
+  <meta property="og:description" content="Superfici di probabilità geoprofilanti (Rossmo/CGT, KDE, centro di gravità, journey-to-crime) calcolate nel browser, con dataset del caso Mostro di Firenze." />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="it_IT" />
-
-  <!-- Twitter -->
+  <meta property="og:url" content="https://cepeppe.github.io/criminal-geoprofiler/" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Criminal Geoprofiler - Mostro di Firenze" />
-  <meta name="twitter:description" content="Web-app statica per geoprofilazione con Leaflet: punti su mappa, parametri regolabili, heatmap." />
+  <meta name="twitter:description" content="Geoprofilazione criminale interattiva, interamente lato client." />
 
-  <!-- Structured Data JSON-LD -->
   <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Criminal Geoprofiler - Mostro di Firenze",
-      "applicationCategory": "EducationalApplication",
-      "operatingSystem": "Web",
-      "inLanguage": "it-IT",
-      "url": "https://example.com/",
-      "description": "Web-app didattica per sperimentare metodi di geoprofilazione (Rossmo/CGT, KDE, Mean Center, Journey-to-crime) e visualizzare heatmap interattive.",
-      "keywords": ["geoprofilazione","geoprofiling","Criminal Geographic Targeting","CGT","Rossmo","KDE","kernel density","heatmap","journey to crime","mean center","criminologia","GIS","Leaflet","Mostro di Firenze","MdF","profilazione geografica"]
-    }
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Criminal Geoprofiler - Mostro di Firenze",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web",
+    "inLanguage": "it-IT",
+    "url": "https://cepeppe.github.io/criminal-geoprofiler/",
+    "author": { "@type": "Person", "name": "Giuseppe Sorgentone" },
+    "license": "https://opensource.org/licenses/BSD-2-Clause",
+    "description": "Strumento didattico di geoprofilazione criminale che calcola superfici di probabilità (Rossmo/CGT, KDE, centro di gravità, journey-to-crime) a partire da punti-evento georiferiti."
+  }
   </script>
 
-  <!-- Performance: CDN/tiles -->
-  <link rel="dns-prefetch" href="//unpkg.com" />
   <link rel="preconnect" href="https://unpkg.com" crossorigin />
-  <link rel="dns-prefetch" href="//a.tile.openstreetmap.org" />
-  <link rel="dns-prefetch" href="//b.tile.openstreetmap.org" />
-  <link rel="dns-prefetch" href="//c.tile.openstreetmap.org" />
-  <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin />
-  <link rel="preconnect" href="https://b.tile.openstreetmap.org" crossorigin />
-  <link rel="preconnect" href="https://c.tile.openstreetmap.org" crossorigin />
+  <link rel="dns-prefetch" href="//tile.openstreetmap.org" />
+  <link rel="dns-prefetch" href="//basemaps.cartocdn.com" />
 
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-
-  <!-- App styles -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- Analytics (Google) - vedi nota privacy nella scheda Info -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q2TWRPNLCH"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-Q2TWRPNLCH');
+  </script>
 </head>
 
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-Q2TWRPNLCH"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-Q2TWRPNLCH');
-</script>
-
 <body>
-<div class="app">
-  <aside class="sidebar" id="sidebar">
-    <div class="header">
-      <div class="head-top">
-        <h1 class="app-title">Criminal Geoprofiler - Mostro di Firenze</h1>
+<a class="skip-link" href="#map">Salta alla mappa</a>
 
+<div class="app" id="app">
+
+  <!-- ══════════════════════ SIDEBAR ══════════════════════ -->
+  <aside class="sidebar" id="sidebar" aria-label="Pannello di controllo">
+
+    <header class="masthead">
+      <div class="masthead__art" role="presentation"></div>
+      <div class="masthead__body">
+        <p class="masthead__eyebrow">Geoprofilazione criminale</p>
+        <h1 class="masthead__title">Criminal Geoprofiler</h1>
+        <p class="masthead__sub">Caso «Mostro di Firenze» · 1968–1985</p>
       </div>
-      <div class="head-actions">
-          <button id="openTutorial" class="btn btn-ghost small" aria-haspopup="dialog" title="Apri il tutorial">❓ Tutorial</button>
-          <button id="closeSidebar" class="btn btn-ghost small only-mobile" title="Chiudi pannello">✕</button>
-          <button id="openAbout" class="btn btn-ghost small" aria-haspopup="dialog" title="Informazioni">ℹ️ About</button>
+      <button id="btnCloseSidebar" class="icon-btn masthead__close only-mobile" title="Chiudi pannello" aria-label="Chiudi pannello">✕</button>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Sezioni">
+      <button class="tab" role="tab" id="tab-dati"       aria-controls="panel-dati"       aria-selected="true"  tabindex="0">Dati</button>
+      <button class="tab" role="tab" id="tab-modello"    aria-controls="panel-modello"    aria-selected="false" tabindex="-1">Modello</button>
+      <button class="tab" role="tab" id="tab-vista"      aria-controls="panel-vista"      aria-selected="false" tabindex="-1">Vista</button>
+      <button class="tab" role="tab" id="tab-risultati"  aria-controls="panel-risultati"  aria-selected="false" tabindex="-1">Risultati</button>
+      <button class="tab" role="tab" id="tab-info"       aria-controls="panel-info"       aria-selected="false" tabindex="-1">Info</button>
+    </nav>
+
+    <div class="tabpanes">
+
+      <!-- ─────────── DATI ─────────── -->
+      <section class="tabpane is-active" id="panel-dati" role="tabpanel" aria-labelledby="tab-dati" tabindex="0">
+
+        <div class="card">
+          <h2 class="card__title">Dataset «Mostro di Firenze»</h2>
+          <p class="card__hint">Otto duplici omicidi attribuiti alla serie, 1968–1985. I cluster sono raggruppamenti geografici, non cronologici.</p>
+          <div class="btn-grid">
+            <button id="btnLoadAll" class="btn">Serie completa <span class="btn__meta">8</span></button>
+            <button id="btnLoadSW"  class="btn">Cluster Sud-Ovest <span class="btn__meta">4</span></button>
+            <button id="btnLoadN"   class="btn">Cluster Nord-Est <span class="btn__meta">3</span></button>
+            <button id="btnClearPoints" class="btn btn--danger">Svuota punti</button>
+          </div>
         </div>
-      <p>Demo didattica 100% client-side: aggiungi punti sulla mappa e genera una mappa di probabilità con diversi metodi.</p>
 
-        <!-- About modal -->
-    <div id="aboutModal" class="modal-overlay" role="dialog" aria-modal="true"
-        aria-labelledby="aboutTitle" aria-describedby="aboutBody" hidden>
-        <div class="modal" role="document">
-            <button class="modal-close" id="closeAbout" aria-label="Chiudi About">✕</button>
-            <h2 id="aboutTitle">About - Criminal Geoprofiler</h2>
+        <div class="card">
+          <h2 class="card__title">Inserimento manuale</h2>
+          <button id="btnAddMode" class="btn btn--toggle" aria-pressed="false">
+            <span class="dot" aria-hidden="true"></span>
+            Clic-su-mappa per aggiungere
+          </button>
+          <p class="card__hint">Con la modalità attiva, ogni clic sulla mappa crea un punto-evento. Clic su un marker esistente per ispezionarlo o rimuoverlo.</p>
 
-            <p id="aboutBody" class="muted">
-              Criminal Geoprofiler - Mostro di Firenze è un’applicazione didattica, interamente client-side, pensata per esplorare in modo intuitivo come cambiano le superfici di verosimiglianza al variare dei dati e dei parametri nei principali metodi di geoprofilazione. Puoi caricare o inserire manualmente punti-evento sulla mappa, scegliere il metodo (Rossmo/CGT, KDE gaussiana, Centro di gravità, Journey-to-crime), regolare buffer/bandwidth/λ e visualizzare il risultato come heatmap. Sono inclusi preset per il caso “Mostro di Firenze” a scala provinciale e per due cluster territoriali.
-            <br>
-              Attenzione: i risultati sono indicativi e dipendono da posizionamento, scala, parametri e completezza del dataset. Non costituiscono prova né sostituiscono attività investigative professionali. L’app non effettua correlazioni temporali né inferenze autonome: elabora unicamente i punti forniti dall’utente o dai preset.
-            <br>
-              <strong>L'autore dell’applicazione ritiene, a titolo puramente personale, che la pista del “Rosso del Mugello” sia la più probabile e solida tra le ipotesi considerate; tuttavia si tratta solo di un’opinione personale, e come tale non rappresenta un fatto accertato. </strong>
-            <br><br>
-              Privacy: l’elaborazione avviene localmente nel browser; l’unico traffico esterno riguarda le librerie CDN e le mappe OSM.
-            <br>
-              Codice sorgente su GitHub: https://github.com/Cepeppe/criminal-geoprofiler-mostrodifirenze
-            </p>
+          <label class="field">
+            <span class="field__label">Coordinate decimali (lat, lon)</span>
+            <span class="field__row">
+              <input id="coordInput" type="text" inputmode="decimal" placeholder="43.794588, 11.082310" autocomplete="off" />
+              <button id="btnAddCoord" class="btn btn--compact">Aggiungi</button>
+            </span>
+          </label>
+          <p class="card__hint">Accettati anche <code>43.794588 11.082310</code> e <code>43,794588; 11,082310</code>.</p>
+        </div>
 
-            <div class="gh-link">
-            <!-- Icona GitHub (inline SVG) -->
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" width="20" height="20">
-                <path fill="currentColor"
-                d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38
-                    0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
-                    -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
-                    .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
-                    -.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82a7.63 7.63 0 0 1 2-.27c.68 0
-                    1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82
-                    1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01
-                    1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-            </svg>
-            <a href="https://github.com/Cepeppe/criminal-geoprofiler-mostrodifirenze" target="_blank" rel="noopener noreferrer">
-                https://github.com/Cepeppe/criminal-geoprofiler-mostrodifirenze
-            </a>
+        <div class="card">
+          <div class="card__head">
+            <h2 class="card__title">Punti-evento <span id="pointsCount" class="chip">0</span></h2>
+            <div class="card__tools">
+              <button id="btnUndo" class="icon-btn" title="Annulla (Ctrl+Z)" aria-label="Annulla" disabled>↶</button>
+              <button id="btnRedo" class="icon-btn" title="Ripeti (Ctrl+Y)" aria-label="Ripeti" disabled>↷</button>
+              <button id="btnFit"  class="icon-btn" title="Inquadra tutti i punti" aria-label="Inquadra tutti i punti">⤢</button>
             </div>
-
-            <div class="modal-actions">
-            <button class="btn btn-primary" id="aboutOk">Chiudi</button>
-            </div></div>
+          </div>
+          <ol id="pointsList" class="points"></ol>
+          <p id="pointsEmpty" class="empty">Nessun punto. Carica un dataset o clicca sulla mappa.</p>
         </div>
-    </div>
 
-    <div class="panel">
-      <h2>1) Punti evento</h2>
-      <div class="row">
-        <button id="btnToggleAdd" class="btn">➕ Modalità aggiunta: <span id="addModeState">ON</span></button>
-        <button id="btnUndo" class="btn">↩️ Annulla</button>
-        <button id="btnClear" class="btn btn-danger">🗑️ Svuota</button>
-      </div>
-      <p class="small muted">Clicca sulla mappa per aggiungere un punto. Clic su un marker per rimuoverlo.</p>
-      <div class="kpi">
-        <span class="badge">Punti: <span id="kpiCount">0</span></span>
-        <span class="badge">Griglia: <span id="kpiGrid">–</span></span>
-        <span class="badge">Tempo: <span id="kpiTime">–</span></span>
-      </div>
-      <ul id="pointsList" class="list"></ul>
-    </div>
+        <div class="card">
+          <h2 class="card__title">Import / Export</h2>
+          <div class="btn-grid">
+            <button id="btnImport" class="btn">Importa CSV/GeoJSON</button>
+            <button id="btnExportCsv" class="btn">Esporta CSV</button>
+            <button id="btnExportGeo" class="btn">Esporta GeoJSON</button>
+            <button id="btnShare" class="btn">Copia link condivisibile</button>
+          </div>
+          <input id="fileInput" type="file" accept=".csv,.json,.geojson,text/csv,application/json" hidden />
+          <p class="card__hint">CSV atteso: intestazione con colonne <code>lat</code>, <code>lon</code> (o <code>lng</code>/<code>longitude</code>) ed eventuale <code>label</code>.</p>
+        </div>
+      </section>
 
-    <div class="panel">
-      <h2>1.b) Aggiungi da coordinate</h2>
-      <div class="row">
-        <label for="coordInput" class="small">Lat, Lon (es: 43.794588, 11.082310)</label>
-      </div>
-      <div class="row">
-        <input id="coordInput" type="text" placeholder="43.794588, 11.082310" />
-        <button id="btnAddCoord" class="btn">➕ Aggiungi</button>
-      </div>
-      <p class="small muted">Formato accettato: <code>lat, lon</code> (punto decimale). Clic su un marker per rimuoverlo.</p>
-    </div>
+      <!-- ─────────── MODELLO ─────────── -->
+      <section class="tabpane" id="panel-modello" role="tabpanel" aria-labelledby="tab-modello" tabindex="0" hidden>
 
-    <div class="panel"></div>
+        <div class="card">
+          <h2 class="card__title">Metodo</h2>
+          <label class="field">
+            <span class="field__label">Superficie da calcolare</span>
+            <select id="method">
+              <option value="rossmo">Rossmo / CGT</option>
+              <option value="kde">KDE - kernel gaussiano</option>
+              <option value="meanCenter">Centro di gravità</option>
+              <option value="journey">Journey-to-crime</option>
+            </select>
+          </label>
 
-    <div class="panel">
-      <h2>1.c) Dataset - Mostro di Firenze</h2>
-      <div class="desc small">
-        <p>Carica i punti storici (1968–1985) direttamente come marker. Puoi poi aggiungere/rimuovere a mano, o filtrare per cluster geografico.</p>
-      </div>
-      <div class="row wrap">
-        <button id="btnLoadAll" class="btn">Carica tutti (8)</button>
-        <button id="btnLoadSW" class="btn">Carica cluster Sud-Ovest</button>
-        <button id="btnLoadN" class="btn">Carica cluster Nord/NE</button>
-        <button id="btnClearAll" class="btn btn-danger">Svuota punti</button>
-      </div>
-    </div>
+          <div class="params" id="p-rossmo">
+            <label class="field field--inline">
+              <span class="field__label">Buffer <i>B</i> <span class="unit">km</span></span>
+              <input id="rossmoB" type="number" step="0.1" min="0.05" value="2.5" />
+            </label>
+            <label class="field field--inline">
+              <span class="field__label">Decadimento <i>f</i></span>
+              <input id="rossmoF" type="number" step="0.1" min="0.1" value="1.2" />
+            </label>
+            <label class="field field--inline">
+              <span class="field__label">Compensazione <i>g</i></span>
+              <input id="rossmoG" type="number" step="0.1" min="0.1" value="1.6" />
+            </label>
+          </div>
 
-    <div class="panel">
-      <h2>2) Metodo</h2>
-      <p> Si consiglia, per una maggiore qualità di calcolo (se si sta utilizzando dataset mostro di firenze), di settare i parametri ai valori suggeriti in <a href="#mdf-consigliati">Valori consigliati - caso “Mostro di Firenze”</a></p>
-      <div class="row">
-        <label for="method">Seleziona formula</label>
-        <select id="method">
-          <option value="rossmo">Rossmo / CGT</option>
-          <option value="kde">KDE (Gaussiana)</option>
-          <option value="meanCenter">Centro di gravità</option>
-          <option value="journey">Journey-to-crime (esponenziale)</option>
-        </select>
-      </div>
+          <div class="params" id="p-kde" hidden>
+            <label class="field field--inline">
+              <span class="field__label">Bandwidth <i>σ</i> <span class="unit">km</span></span>
+              <input id="kdeSigma" type="number" step="0.1" min="0.05" value="2.8" />
+            </label>
+            <button id="btnAutoSigma" class="btn btn--compact btn--wide">Stima automatica (Silverman)</button>
+          </div>
 
-      <div id="params-rossmo" class="params">
-        <div class="row"><label>Buffer B (km)</label><input id="rossmoB" type="number" step="0.1" value="1.0"></div>
-        <div class="row"><label>f (decadimento)</label><input id="rossmoF" type="number" step="0.1" value="1.2"></div>
-        <div class="row"><label>g (compensazione)</label><input id="rossmoG" type="number" step="0.1" value="1.8"></div>
-      </div>
+          <div class="params" id="p-meanCenter" hidden>
+            <label class="field field--inline">
+              <span class="field__label">Scala <i>σ</i></span>
+              <input id="mcScale" type="number" step="0.1" min="0.1" value="1.1" />
+            </label>
+            <p class="card__hint">σ deriva dalla distanza standard dei punti dal baricentro, moltiplicata per questo fattore.</p>
+          </div>
 
-      <div id="params-kde" class="params" style="display:none">
-        <div class="row"><label>Bandwidth σ (km)</label><input id="kdeSigma" type="number" step="0.1" value="1.2"></div>
-      </div>
+          <div class="params" id="p-journey" hidden>
+            <label class="field field--inline">
+              <span class="field__label">Lambda <i>λ</i> <span class="unit">1/km</span></span>
+              <input id="journeyLambda" type="number" step="0.05" min="0.01" value="0.25" />
+            </label>
+            <p class="card__hint">Distanza di dimezzamento <i>d<sub>½</sub></i> = ln2/λ = <b id="journeyHalf">2,77 km</b>.</p>
+          </div>
+        </div>
 
-      <div id="params-meanCenter" class="params" style="display:none">
-        <div class="row"><label>Scala σ multipla</label><input id="mcScale" type="number" step="0.1" value="1.0"></div>
-      </div>
+        <div class="card">
+          <h2 class="card__title">Metrica &amp; griglia</h2>
+          <label class="field">
+            <span class="field__label">Metrica di distanza</span>
+            <select id="distMetric">
+              <option value="haversine">Euclidea geodetica (great-circle)</option>
+              <option value="manhattan">Manhattan (reticolo urbano)</option>
+            </select>
+          </label>
+          <p class="card__hint">Rossmo formulò la CGT su distanza Manhattan, adatta a reticoli urbani. In contesto extraurbano la geodetica è di norma più realistica.</p>
 
-      <div id="params-journey" class="params" style="display:none">
-        <div class="row"><label>Lambda λ (1/km)</label><input id="journeyLambda" type="number" step="0.05" value="0.7"></div>
-      </div>
+          <label class="switch">
+            <input id="gridAuto" type="checkbox" checked />
+            <span>Risoluzione automatica</span>
+          </label>
+          <label class="field field--inline" id="gridStepField">
+            <span class="field__label">Passo griglia <span class="unit">m</span></span>
+            <input id="gridStep" type="number" step="25" min="25" value="300" disabled />
+          </label>
+          <p class="card__hint" id="gridInfo">La griglia si adatta all'estensione dei punti puntando a ~40 000 celle.</p>
+        </div>
 
-      <div class="row"><label>Passo griglia (m)</label><input id="gridStep" type="number" step="50" value="300"></div>
-      <div class="row"><label>Raggio heatmap (px)</label><input id="heatRadius" type="number" step="1" value="18"></div>
+        <div class="card card--sticky">
+          <button id="btnRun" class="btn btn--primary btn--wide">Calcola superficie</button>
+          <button id="btnClearSurface" class="btn btn--wide">Rimuovi superficie</button>
+        </div>
 
-      <div class="row">
-        <button id="btnRun" class="btn btn-primary">🔥 Calcola & mostra</button>
-        <button id="btnClearOverlay" class="btn">🧹 Pulisci overlay</button>
-      </div>
+        <div class="card">
+          <h2 class="card__title">Come funziona</h2>
+          <div id="methodDesc" class="prose"></div>
+        </div>
+      </section>
 
-      <div class="legend">
-        <span>Probabilità</span>
-        <div class="legend-bar"></div>
-      </div>
+      <!-- ─────────── VISTA ─────────── -->
+      <section class="tabpane" id="panel-vista" role="tabpanel" aria-labelledby="tab-vista" tabindex="0" hidden>
 
-      <p class="attention"> <strong>ATTENZIONE: Se dopo aver premuto il pulsante "Calcola e Mostra" la zona di interesse non è ben visibile, prova ad aumentare il parametro "Raggio heatmap (px)" a un valore circa uguale a 50 e ricalcola</strong></p>
-    </div>
+        <div class="card">
+          <h2 class="card__title">Superficie</h2>
+          <label class="field">
+            <span class="field__label">Scala cromatica</span>
+            <select id="colormap">
+              <option value="viridis">Viridis - percettivamente uniforme</option>
+              <option value="inferno">Inferno</option>
+              <option value="magma">Magma</option>
+              <option value="cividis">Cividis - ottimizzata per daltonismo</option>
+              <option value="ice">Ghiaccio - tinta singola</option>
+            </select>
+          </label>
 
-    <div class="panel">
-      <h2>3) Descrizione formula</h2>
-      <div id="methodDesc" class="desc small"></div>
-    </div>
+          <label class="field">
+            <span class="field__label">Mappatura dei valori</span>
+            <select id="colorScale">
+              <option value="percentile">Percentile d'area (consigliata)</option>
+              <option value="linear">Lineare sulla probabilità</option>
+            </select>
+          </label>
+          <p class="card__hint">La mappatura per percentile garantisce che la zona di interesse resti sempre leggibile, indipendentemente dall'intervallo dinamico del modello.</p>
 
-    <div class="panel">
-      <h2 id="mdf-consigliati">4) Valori consigliati - caso “Mostro di Firenze”</h2>
-      <div class="desc small">
-        <p><b>Come determinarli (regole pratiche):</b></p>
-        <ul>
-          <li><b>Passo griglia</b>: ~ 1/30 della diagonale del bounding box o ~ 1/2–1/3 del <i>nearest neighbor</i>.</li>
-          <li><b>Rossmo B</b>: 0.8–1.5 km nei cluster; 2–3 km su scala provinciale.</li>
-          <li><b>Rossmo f/g</b>: f 1.2–1.5; g 1.6–1.9.</li>
-          <li><b>KDE σ</b>: ≈ 0.8 × mediana distanze k-NN (k=1..3) o 7–10% diagonale.</li>
-          <li><b>Journey λ</b>: scegli <i>d<sub>1/2</sub></i> e usa λ = ln(2)/d<sub>1/2</sub>.</li>
-        </ul>
-      </div>
+          <label class="field field--inline">
+            <span class="field__label">Opacità</span>
+            <input id="opacity" type="range" min="20" max="100" step="5" value="85" />
+            <output id="opacityOut" class="unit">85%</output>
+          </label>
 
-      <details class="acc" open>
-        <summary><span class="caret"></span><span><b>A)</b> Scala provinciale (tutti gli 8 punti)</span></summary>
-        <ul class="list kv">
-          <li><span>Griglia / Heatmap</span><span>passo ≈ <b>700 m</b> · raggio ≈ <b>24 px</b></span></li>
-          <li><span>Rossmo/CGT</span><span>B=<b>2.5 km</b>; f=<b>1.2</b>; g=<b>1.6</b> <button id="applyProvRossmo" class="btn">Applica</button></span></li>
-          <li><span>KDE</span><span>σ = <b>2.8 km</b> <button id="applyProvKDE" class="btn">Applica</button></span></li>
-          <li><span>Centro di gravità</span><span>scala σ = <b>1.1×</b> <button id="applyProvMC" class="btn">Applica</button></span></li>
-          <li><span>Journey-to-crime</span><span>λ = <b>0.25 1/km</b> (d<sub>1/2</sub>≈2.77 km) <button id="applyProvJourney" class="btn">Applica</button></span></li>
-        </ul>
-      </details>
+          <label class="field field--inline">
+            <span class="field__label">Soglia inferiore</span>
+            <input id="threshold" type="range" min="0" max="95" step="5" value="0" />
+            <output id="thresholdOut" class="unit">0%</output>
+          </label>
+          <p class="card__hint">Nasconde le celle sotto il percentile indicato: utile per isolare il nucleo ad alta probabilità.</p>
 
-      <details class="acc">
-        <summary><span class="caret"></span><span><b>B)</b> Cluster Sud-Ovest</span></summary>
-        <ul class="list kv">
-          <li><span>Griglia / Heatmap</span><span>passo ≈ <b>325 m</b> · raggio ≈ <b>18 px</b></span></li>
-          <li><span>Rossmo/CGT</span><span>B=<b>1.0 km</b>; f=<b>1.4</b>; g=<b>1.8</b> <button id="applySWRossmo" class="btn">Applica</button></span></li>
-          <li><span>KDE</span><span>σ = <b>0.9 km</b> <button id="applySWKDE" class="btn">Applica</button></span></li>
-          <li><span>Centro di gravità</span><span>scala σ = <b>0.9×</b> <button id="applySWMC" class="btn">Applica</button></span></li>
-          <li><span>Journey-to-crime</span><span>λ = <b>0.60 1/km</b> <button id="applySWJourney" class="btn">Applica</button></span></li>
-        </ul>
-      </details>
+          <label class="switch">
+            <input id="showContours" type="checkbox" checked />
+            <span>Isolinee ai percentili 50 / 75 / 90 / 95 / 99</span>
+          </label>
+        </div>
 
-      <details class="acc">
-        <summary><span class="caret"></span><span><b>C)</b> Cluster Nord / NE</span></summary>
-        <ul class="list kv">
-          <li><span>Griglia / Heatmap</span><span>passo ≈ <b>400 m</b> · raggio ≈ <b>18 px</b></span></li>
-          <li><span>Rossmo/CGT</span><span>B=<b>1.2 km</b>; f=<b>1.3</b>; g=<b>1.7</b> <button id="applyNRossmo" class="btn">Applica</button></span></li>
-          <li><span>KDE</span><span>σ = <b>1.2 km</b> <button id="applyNKDE" class="btn">Applica</button></span></li>
-          <li><span>Centro di gravità</span><span>scala σ = <b>1.0×</b> <button id="applyNMC" class="btn">Applica</button></span></li>
-          <li><span>Journey-to-crime</span><span>λ = <b>0.50 1/km</b> <button id="applyNJourney" class="btn">Applica</button></span></li>
-        </ul>
-      </details>
-    </div>
+        <div class="card">
+          <h2 class="card__title">Mappa</h2>
+          <label class="field">
+            <span class="field__label">Mappa di base</span>
+            <select id="basemap">
+              <option value="dark">CARTO Dark Matter</option>
+              <option value="light">CARTO Positron</option>
+              <option value="osm">OpenStreetMap standard</option>
+            </select>
+          </label>
+          <label class="switch">
+            <input id="showLabels" type="checkbox" />
+            <span>Etichette permanenti sui punti</span>
+          </label>
+          <label class="switch">
+            <input id="showCentro" type="checkbox" checked />
+            <span>Indicatori centrografici (baricentro, mediana geometrica)</span>
+          </label>
+          <label class="switch">
+            <input id="showEllipse" type="checkbox" />
+            <span>Ellisse di deviazione standard (1σ)</span>
+          </label>
+        </div>
 
-    <div class="footer">
-      <div class="pill">🗺️ Tiles: OpenStreetMap · Motore: Leaflet + Leaflet.heat</div>
-      <div class="sep"></div>
-      <p class="small">Questa è una demo didattica. Le superfici mostrate sono <b>indicative</b> e dipendono dai parametri scelti.</p>
+        <div class="card">
+          <h2 class="card__title">Interfaccia</h2>
+          <label class="field">
+            <span class="field__label">Tema</span>
+            <select id="theme">
+              <option value="dark">Scuro</option>
+              <option value="light">Chiaro</option>
+              <option value="auto">Segui il sistema</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <!-- ─────────── RISULTATI ─────────── -->
+      <section class="tabpane" id="panel-risultati" role="tabpanel" aria-labelledby="tab-risultati" tabindex="0" hidden>
+
+        <div class="card">
+          <h2 class="card__title">Picchi di probabilità</h2>
+          <p class="card__hint">Massimi locali della superficie, ordinati per probabilità decrescente. Sono l'output operativo di un geoprofilo: le aree da esaminare per prime.</p>
+          <ol id="peaksList" class="peaks"></ol>
+          <p id="peaksEmpty" class="empty">Calcola una superficie per ottenere i picchi.</p>
+        </div>
+
+        <div class="card">
+          <h2 class="card__title">Hit score</h2>
+          <p class="card__hint">Metrica standard di valutazione di un geoprofilo: la percentuale dell'area di studio da perlustrare, seguendo l'ordine di probabilità, prima di raggiungere un punto di ancoraggio ipotizzato. Più è bassa, più il profilo è informativo.</p>
+          <button id="btnSetAnchor" class="btn btn--wide" aria-pressed="false">Posiziona ipotesi di ancoraggio</button>
+          <div id="anchorResult" class="stat-strip" hidden>
+            <div class="stat">
+              <span class="stat__label">Hit score</span>
+              <b class="stat__value" id="hitScore">–</b>
+            </div>
+            <div class="stat">
+              <span class="stat__label">Area da perlustrare</span>
+              <b class="stat__value" id="hitArea">–</b>
+            </div>
+            <div class="stat">
+              <span class="stat__label">Coordinate</span>
+              <b class="stat__value stat__value--sm" id="anchorCoord">–</b>
+            </div>
+          </div>
+          <button id="btnClearAnchor" class="btn btn--compact btn--wide" hidden>Rimuovi ancoraggio</button>
+        </div>
+
+        <div class="card">
+          <h2 class="card__title">Statistiche centrografiche</h2>
+          <dl id="statsList" class="stats"></dl>
+          <p id="statsEmpty" class="empty">Servono almeno 2 punti.</p>
+        </div>
+      </section>
+
+      <!-- ─────────── INFO ─────────── -->
+      <section class="tabpane" id="panel-info" role="tabpanel" aria-labelledby="tab-info" tabindex="0" hidden>
+
+        <div class="card card--warn">
+          <h2 class="card__title">Avvertenza</h2>
+          <p class="prose">Le superfici prodotte sono <b>indicative e didattiche</b>. Dipendono in modo determinante dai punti inseriti, dalla scala, dalla metrica e dai parametri scelti. Non costituiscono prova, non sostituiscono l'attività investigativa e non identificano persone. L'applicazione non effettua inferenze autonome né correlazioni temporali: elabora esclusivamente i punti forniti.</p>
+        </div>
+
+        <div class="card">
+          <h2 class="card__title">Valori di riferimento - caso MdF</h2>
+          <p class="card__hint">Punti di partenza empirici, da verificare caso per caso. «Applica» imposta metodo e parametri.</p>
+
+          <details class="acc" open>
+            <summary><b>A.</b> Scala provinciale - serie completa</summary>
+            <ul class="kv">
+              <li><span>Rossmo/CGT</span><span><i>B</i>=2,5 km · <i>f</i>=1,2 · <i>g</i>=1,6 <button class="btn btn--mini" data-apply="provinciale:rossmo">Applica</button></span></li>
+              <li><span>KDE</span><span><i>σ</i>=2,8 km <button class="btn btn--mini" data-apply="provinciale:kde">Applica</button></span></li>
+              <li><span>Centro di gravità</span><span>scala 1,1× <button class="btn btn--mini" data-apply="provinciale:meanCenter">Applica</button></span></li>
+              <li><span>Journey-to-crime</span><span><i>λ</i>=0,25 (<i>d</i><sub>½</sub>≈2,8 km) <button class="btn btn--mini" data-apply="provinciale:journey">Applica</button></span></li>
+            </ul>
+          </details>
+
+          <details class="acc">
+            <summary><b>B.</b> Cluster Sud-Ovest</summary>
+            <ul class="kv">
+              <li><span>Rossmo/CGT</span><span><i>B</i>=1,0 km · <i>f</i>=1,4 · <i>g</i>=1,8 <button class="btn btn--mini" data-apply="clusterSW:rossmo">Applica</button></span></li>
+              <li><span>KDE</span><span><i>σ</i>=0,9 km <button class="btn btn--mini" data-apply="clusterSW:kde">Applica</button></span></li>
+              <li><span>Centro di gravità</span><span>scala 0,9× <button class="btn btn--mini" data-apply="clusterSW:meanCenter">Applica</button></span></li>
+              <li><span>Journey-to-crime</span><span><i>λ</i>=0,60 <button class="btn btn--mini" data-apply="clusterSW:journey">Applica</button></span></li>
+            </ul>
+          </details>
+
+          <details class="acc">
+            <summary><b>C.</b> Cluster Nord-Est</summary>
+            <ul class="kv">
+              <li><span>Rossmo/CGT</span><span><i>B</i>=1,2 km · <i>f</i>=1,3 · <i>g</i>=1,7 <button class="btn btn--mini" data-apply="clusterN:rossmo">Applica</button></span></li>
+              <li><span>KDE</span><span><i>σ</i>=1,2 km <button class="btn btn--mini" data-apply="clusterN:kde">Applica</button></span></li>
+              <li><span>Centro di gravità</span><span>scala 1,0× <button class="btn btn--mini" data-apply="clusterN:meanCenter">Applica</button></span></li>
+              <li><span>Journey-to-crime</span><span><i>λ</i>=0,50 <button class="btn btn--mini" data-apply="clusterN:journey">Applica</button></span></li>
+            </ul>
+          </details>
+
+          <details class="acc">
+            <summary>Come si scelgono i parametri</summary>
+            <ul class="bullets">
+              <li><b>Passo griglia</b> - circa 1/200 della diagonale del bounding box; l'automatismo lo calcola per te.</li>
+              <li><b>Buffer <i>B</i></b> - ordine di grandezza della «zona cuscinetto» attorno alla base: 0,8–1,5 km su cluster, 2–3 km su scala provinciale.</li>
+              <li><b><i>f</i> e <i>g</i></b> - esponenti di decadimento fuori e dentro il buffer: <i>f</i> 1,2–1,5, <i>g</i> 1,6–1,9.</li>
+              <li><b>σ (KDE)</b> - la stima di Silverman è un buon punto di partenza; in alternativa 0,8× la mediana delle distanze al primo vicino.</li>
+              <li><b>λ (JTC)</b> - scegli la distanza di dimezzamento <i>d</i><sub>½</sub> plausibile e poni λ = ln2 / <i>d</i><sub>½</sub>.</li>
+            </ul>
+          </details>
+        </div>
+
+        <div class="card">
+          <h2 class="card__title">Opinione dell'autore</h2>
+          <p class="prose">L'autore ritiene, <b>a titolo puramente personale</b>, che la pista del «Rosso del Mugello» sia la più solida fra le ipotesi considerate. È un'opinione, non un fatto accertato, e non discende dai calcoli di questa applicazione.</p>
+        </div>
+
+        <div class="card">
+          <h2 class="card__title">Privacy e dati</h2>
+          <p class="prose">Il calcolo avviene <b>interamente nel browser</b>: nessun punto-evento lascia il tuo dispositivo. I punti inseriti sono salvati solo in <code>localStorage</code>, in locale.</p>
+          <p class="prose">Il traffico verso l'esterno riguarda: le librerie da CDN (unpkg), le tile cartografiche (OpenStreetMap / CARTO) e <b>Google Analytics</b>, che raccoglie statistiche di navigazione aggregate. Puoi bloccarlo con un qualsiasi content blocker senza perdere alcuna funzionalità.</p>
+        </div>
+
+        <div class="card">
+          <h2 class="card__title">Crediti</h2>
+          <ul class="bullets">
+            <li>Cartografia © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors · tile © <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>.</li>
+            <li>Motore mappa: <a href="https://leafletjs.com/" target="_blank" rel="noopener noreferrer">Leaflet 1.9.4</a>. Nessun'altra dipendenza.</li>
+            <li>Scale cromatiche: viridis, inferno, magma, cividis (matplotlib, licenza CC0).</li>
+            <li>Licenza del progetto: BSD 2-Clause · © 2025 Giuseppe Sorgentone.</li>
+          </ul>
+          <a class="gh" href="https://github.com/Cepeppe/criminal-geoprofiler" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 16 16" aria-hidden="true" width="18" height="18"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82a7.63 7.63 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+            github.com/Cepeppe/criminal-geoprofiler
+          </a>
+          <button id="btnOpenTutorial" class="btn btn--wide">Rivedi il tutorial</button>
+          <button id="btnResetAll" class="btn btn--danger btn--wide">Ripristina impostazioni di fabbrica</button>
+        </div>
+      </section>
     </div>
   </aside>
 
-  <div id="resizer" aria-label="Ridimensiona pannello" title="Trascina per ridimensionare"></div>
-  <main id="map"></main>
+  <div id="resizer" class="resizer" role="separator" aria-orientation="vertical" aria-label="Ridimensiona pannello" tabindex="0"></div>
+
+  <!-- ══════════════════════ MAPPA ══════════════════════ -->
+  <main class="stage">
+    <div id="map"></div>
+
+    <div class="overlay overlay--tl" id="kpiBar">
+      <div class="tile"><span class="tile__label">Punti</span><b class="tile__value" id="kpiPoints">0</b></div>
+      <div class="tile"><span class="tile__label">Celle</span><b class="tile__value" id="kpiCells">–</b></div>
+      <div class="tile"><span class="tile__label">Risoluzione</span><b class="tile__value" id="kpiRes">–</b></div>
+      <div class="tile"><span class="tile__label">Calcolo</span><b class="tile__value" id="kpiTime">–</b></div>
+    </div>
+
+    <div class="overlay overlay--br legend" id="legendCard" hidden>
+      <div class="legend__head">
+        <span class="legend__title" id="legendTitle">Probabilità relativa</span>
+        <span class="legend__stale" id="legendStale" hidden title="I punti o i parametri sono cambiati dopo l'ultimo calcolo">non aggiornata</span>
+        <button id="btnLegendToggle" class="icon-btn icon-btn--sm" aria-label="Comprimi legenda" aria-expanded="true">–</button>
+      </div>
+      <div class="legend__body" id="legendBody">
+        <canvas id="legendRamp" class="legend__ramp" width="240" height="14" role="img" aria-label="Scala cromatica dalla probabilità minima alla massima"></canvas>
+        <div class="legend__scale" id="legendScale"><span>basso</span><span>alto</span></div>
+        <div class="legend__notes" id="legendNotes"></div>
+      </div>
+    </div>
+
+    <button id="btnOpenSidebar" class="fab only-mobile" aria-label="Apri pannello" aria-expanded="false">☰</button>
+  </main>
 </div>
 
-<!-- Scrim per drawer mobile -->
-<div id="sidebarScrim" class="scrim" hidden></div>
-<!-- FAB per aprire la sidebar su mobile -->
-<button id="toggleSidebar" class="fab only-mobile" title="Apri pannello">☰</button>
+<div id="scrim" class="scrim" hidden></div>
+<div id="toasts" class="toasts" role="status" aria-live="polite"></div>
 
-<!-- Tutorial modal -->
-<div id="tutorialModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle" aria-describedby="tutorialBody">
+<!-- ══════════════════════ TUTORIAL ══════════════════════ -->
+<div id="tutorialModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="tutTitle" hidden>
   <div class="modal" role="document">
-    <button class="modal-close" id="closeTutorial" aria-label="Chiudi tutorial">✕</button>
-    <h2 id="tutorialTitle">Criminal Geoprofiler - Mostro di Firenze</h2>
-    <p class="muted" id="tutorialBody">
-      Questa applicazione è una <b>demo didattica</b> di geoprofilazione <i>client-side</i>. Consente di:
-    </p>
-    <ul class="modal-list">
-      <li>Caricare o inserire manualmente i <b>punti-evento</b> su mappa.</li>
-      <li>Generare una superficie di <b>verosimiglianza</b> con più metodi (Rossmo/CGT, KDE, Centro di gravità, Journey-to-crime).</li>
-      <li>Regolare parametri e visualizzare una <b>heatmap</b>.</li>
-    </ul>
-    <div class="modal-steps">
-      <h3>Come si usa (rapido):</h3>
-      <ol>
-        <li>Premi “Carica tutti” o clicca sulla mappa per aggiungere punti.</li>
-        <li>Scegli il <b>metodo</b> e imposta i <b>parametri</b>.</li>
-        <li>Premi <b>“Calcola &amp; mostra”</b> per generare la heatmap.</li>
-      </ol>
-                <p class="attention"> <strong>ATTENZIONE: Se dopo aver premuto il pulsante "Calcola e Mostra" la zona di interesse non è ben visibile, prova ad aumentare il parametro "Raggio heatmap (px)" a un valore circa uguale a 50 e ricalcola</strong></p>
-    </div>
-    <p class="modal-warning">⚠️ Le mappe prodotte sono indicative e non sostituiscono attività investigative professionali ⚠️ </p>
-    <div class="modal-actions">
-      <button class="btn btn-primary" id="startApp">Inizia</button>
+    <button class="modal__close icon-btn" id="btnCloseTutorial" aria-label="Chiudi">✕</button>
+    <p class="modal__eyebrow">Benvenuto</p>
+    <h2 id="tutTitle">Criminal Geoprofiler</h2>
+    <p class="prose">Strumento didattico di <b>geoprofilazione criminale</b>. A partire da una serie di punti-evento georiferiti, stima dove è più probabile si trovi il <i>punto di ancoraggio</i> dell'autore (residenza, luogo di lavoro, base operativa).</p>
+    <ol class="modal__steps">
+      <li><b>Carica i punti</b> - usa il dataset MdF nella scheda <i>Dati</i>, oppure clicca sulla mappa.</li>
+      <li><b>Scegli il modello</b> - Rossmo/CGT, KDE, centro di gravità o journey-to-crime, nella scheda <i>Modello</i>.</li>
+      <li><b>Calcola</b> - la superficie compare sulla mappa con isolinee ai percentili; i picchi sono elencati in <i>Risultati</i>.</li>
+    </ol>
+    <p class="modal__warn">Le superfici sono indicative e didattiche: non costituiscono prova né sostituiscono attività investigative.</p>
+    <label class="switch modal__dontshow">
+      <input id="tutDontShow" type="checkbox" />
+      <span>Non mostrare più all'avvio</span>
+    </label>
+    <div class="modal__actions">
+      <button class="btn btn--primary" id="btnStart">Inizia</button>
     </div>
   </div>
 </div>
 
-<!-- Leaflet & plugins -->
-<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script defer src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<div id="fileGuard" class="file-guard" hidden>
+  <div class="file-guard__box">
+    <h2>Serve un server locale</h2>
+    <p>Questa pagina usa moduli JavaScript, che i browser non caricano dal protocollo <code>file://</code>. Avvia un server statico nella cartella del progetto:</p>
+    <pre><code>python -m http.server 8000</code></pre>
+    <p>poi apri <code>http://localhost:8000</code>. Online (GitHub Pages) funziona senza alcuna configurazione.</p>
+  </div>
+</div>
 
-<!-- App logic -->
-<script defer src="app.js"></script>
+<script>
+  if (location.protocol === 'file:') {
+    document.getElementById('fileGuard').hidden = false;
+  }
+</script>
+
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>

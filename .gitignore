@@ -1,0 +1,12 @@
+# Claude Code – impostazioni personali (non condivise)
+.claude/settings.local.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Dipendenze / build (se in futuro si aggiunge tooling)
+node_modules/
+dist/
