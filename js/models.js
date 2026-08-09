@@ -11,65 +11,25 @@
  */
 
 import { centroid, standardDistanceKm, nearestNeighborStats, haversineKm } from './geo.js';
+import { t } from './i18n.js';
 
 /* ─────────────────────────── Metadati ─────────────────────────── */
 
+/**
+ * Le chiavi definiscono l'insieme dei modelli disponibili; etichetta e
+ * descrizione vivono nei dizionari (`method.<chiave>.label|desc`) perché
+ * cambiano con la lingua, mentre i kernel no.
+ */
 export const METHODS = {
-  rossmo: {
-    label: 'Rossmo / CGT',
-    desc: `
-      <p><b>Criminal Geographic Targeting</b> (D.&nbsp;K. Rossmo, 1995). Ogni punto-evento
-      contribuisce con una funzione di <i>distance decay</i> spezzata in due regimi:</p>
-      <p class="formula">p(i) = Σ<sub>n</sub> [ φ · d<sub>n</sub><sup>−f</sup> + (1−φ) · B<sup>g−f</sup> / (2B − d<sub>n</sub>)<sup>g</sup> ]</p>
-      <p>con φ = 1 se d<sub>n</sub> &gt; <i>B</i>, altrimenti 0.</p>
-      <p><b>Oltre il buffer</b> (d &gt; <i>B</i>) la verosimiglianza decade come una potenza
-      di esponente <i>f</i>: più ci si allontana, meno è plausibile che lì risieda l'autore.
-      <b>Dentro il buffer</b> (d ≤ <i>B</i>) il termine <i>cresce</i> con la distanza: modella la
-      <i>buffer zone</i>, l'area immediatamente attorno alla base che un autore tende a
-      evitare per non essere riconosciuto. Il massimo cade quindi sull'<b>anello</b> di raggio
-      <i>B</i>, non sul punto-evento.</p>
-      <p class="note">La formulazione originale usa la distanza Manhattan, coerente con un
-      reticolo stradale urbano. Puoi selezionarla nella sezione «Metrica».</p>`,
-  },
-  kde: {
-    label: 'KDE - kernel gaussiano',
-    desc: `
-      <p><b>Stima di densità per nuclei</b>. Ogni punto-evento è sostituito da una gaussiana
-      di ampiezza <i>σ</i> e le gaussiane si sommano:</p>
-      <p class="formula">p(i) ∝ Σ<sub>n</sub> exp( − d<sub>n</sub>² / 2σ² )</p>
-      <p>Descrive <b>dove si concentrano gli eventi</b>, non dove risiede l'autore: non
-      incorpora alcuna ipotesi di <i>buffer zone</i>. È il riferimento naturale contro cui
-      confrontare i modelli propriamente geoprofilanti.</p>
-      <p class="note"><i>σ</i> piccolo → superficie frammentata attorno ai singoli punti;
-      <i>σ</i> grande → una sola macchia centrata sul baricentro.</p>`,
-  },
-  meanCenter: {
-    label: 'Centro di gravità',
-    desc: `
-      <p><b>Modello centrografico</b>. Una singola gaussiana isotropa centrata sul baricentro
-      dei punti-evento:</p>
-      <p class="formula">p(i) ∝ exp( − d(i, C)² / 2σ² )</p>
-      <p>dove <i>C</i> è il baricentro e <i>σ</i> la distanza standard dei punti da <i>C</i>,
-      moltiplicata per il fattore di scala.</p>
-      <p class="note">È il modello più semplice e più fragile: un singolo evento distante
-      sposta sensibilmente <i>C</i>. Il pannello «Risultati» riporta anche la
-      <b>mediana geometrica</b>, stimatore robusto alternativo.</p>`,
-  },
-  journey: {
-    label: 'Journey-to-crime',
-    desc: `
-      <p><b>Modello di viaggio verso il crimine</b> a decadimento esponenziale. Ipotizza che
-      ogni spostamento base→evento sia indipendente, con probabilità che decade
-      esponenzialmente nella distanza:</p>
-      <p class="formula">log p(i) = − λ · Σ<sub>n</sub> d<sub>n</sub> + cost.</p>
-      <p>Il parametro <i>λ</i> è l'inverso di una distanza caratteristica: la
-      <b>distanza di dimezzamento</b> è <i>d</i><sub>½</sub> = ln2 / λ.</p>
-      <p class="note">Sommando le distanze, il modello privilegia fortemente i punti a
-      distanza aggregata minima: la superficie tende a concentrarsi attorno alla
-      <b>mediana geometrica</b>. Il calcolo avviene in scala logaritmica, quindi resta
-      accurato anche con λ elevati e molti punti.</p>`,
-  },
+  rossmo: {},
+  kde: {},
+  meanCenter: {},
+  journey: {},
 };
+
+export const methodLabel = (method) => t(`method.${method}.label`);
+export const methodDesc = (method) => t(`method.${method}.desc`);
+
 
 /* ─────────────────────── Normalizzazione ─────────────────────── */
 
@@ -196,8 +156,8 @@ const KERNELS = {
  */
 export function computeSurface(method, grid, points, params, dist = haversineKm) {
   const kernel = KERNELS[method];
-  if (!kernel) throw new Error(`Modello sconosciuto: ${method}`);
-  if (!points.length) throw new Error('Nessun punto-evento.');
+  if (!kernel) throw new Error(t('model.err.unknown', { method }));
+  if (!points.length) throw new Error(t('model.err.noPoints'));
 
   // Sotto mezza cella la geometria non è risolvibile: evita singolarità in d→0
   const dMinKm = Math.max(1e-4, grid.groundStepM / 2000);

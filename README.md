@@ -1,263 +1,285 @@
-# Criminal Geoprofiler - Mostro di Firenze
+# Criminal Geoprofiler - Monster of Florence
 
-Strumento didattico di **geoprofilazione criminale**, interamente lato client. A partire da una serie di
-punti-evento georiferiti calcola una **superficie di probabilità** del punto di ancoraggio dell'autore
-(residenza, luogo di lavoro, base operativa) con quattro modelli classici, e la rende come raster
-continuo con isolinee ai percentili d'area.
+***English** · [Italiano](README.it.md)*
+
+An educational **criminal geographic profiling** tool, entirely client-side. From a series of
+georeferenced event points it computes a **probability surface** for the offender's anchor point
+(home, workplace, operating base) using four classic models, and renders it as a continuous raster
+with area-percentile contours.
 
 **Demo:** <https://cepeppe.github.io/criminal-geoprofiler/>
 
-> ⚠️ I risultati sono **indicativi e didattici**. Dipendono in modo determinante dai punti inseriti,
-> dalla scala, dalla metrica e dai parametri. Non costituiscono prova, non sostituiscono l'attività
-> investigativa e non identificano persone.
+> ⚠️ The results are **indicative and educational**. They depend decisively on the points entered,
+> on the scale, on the metric and on the parameters. They are not evidence, they do not replace
+> investigative work and they do not identify people.
 
 ---
 
-## Indice
+## Contents
 
-- [Cosa fa](#cosa-fa)
-- [Modelli implementati](#modelli-implementati)
-- [Come vengono rese le superfici](#come-vengono-rese-le-superfici)
-- [Metriche di valutazione](#metriche-di-valutazione)
-- [Struttura del progetto](#struttura-del-progetto)
-- [Avvio in locale](#avvio-in-locale)
-- [Deploy](#deploy)
+- [What it does](#what-it-does)
+- [Language](#language)
+- [Models implemented](#models-implemented)
+- [How the surfaces are rendered](#how-the-surfaces-are-rendered)
+- [Evaluation metrics](#evaluation-metrics)
+- [Project structure](#project-structure)
+- [Running locally](#running-locally)
+- [Deployment](#deployment)
 - [Import / export](#import--export)
-- [Scorciatoie da tastiera](#scorciatoie-da-tastiera)
-- [Valori di riferimento - caso MdF](#valori-di-riferimento--caso-mdf)
-- [Privacy e dati](#privacy-e-dati)
-- [Limiti noti](#limiti-noti)
-- [Licenza](#licenza)
+- [Keyboard shortcuts](#keyboard-shortcuts)
+- [Reference values - MoF case](#reference-values---mof-case)
+- [Privacy and data](#privacy-and-data)
+- [Known limitations](#known-limitations)
+- [Credits and licence](#credits-and-licence)
 
 ---
 
-## Cosa fa
+## What it does
 
-- **Punti-evento**: dataset storico del caso Mostro di Firenze (8 episodi, 1968–1985, con due cluster
-  geografici), inserimento per clic su mappa o per coordinate, import CSV/GeoJSON.
-- **Quattro modelli** di geoprofilazione con parametri regolabili e due metriche di distanza
-  (geodetica e Manhattan).
-- **Superficie di probabilità** resa come raster continuo con isolinee ai percentili d'area, cinque
-  scale cromatiche percettivamente uniformi, soglia e opacità regolabili.
-- **Picchi di probabilità** estratti automaticamente: le aree da esaminare per prime, in ordine.
-- **Hit score**: valutazione quantitativa del profilo rispetto a un'ipotesi di ancoraggio.
-- **Statistiche centrografiche**: baricentro, mediana geometrica, distanza standard, primo vicino,
-  ellisse di deviazione standard.
-- Persistenza locale, annulla/ripeti, condivisione dello stato via URL, tema chiaro/scuro.
+- **Event points**: the historical dataset of the Monster of Florence case (8 episodes, 1968–1985,
+  with two geographic clusters), entry by click on the map or by coordinates, CSV/GeoJSON import.
+- **Four geographic profiling models** with adjustable parameters and two distance metrics
+  (geodesic and Manhattan).
+- **Probability surface** rendered as a continuous raster with area-percentile contours, five
+  perceptually uniform colour scales, adjustable threshold and opacity.
+- **Probability peaks** extracted automatically: the areas to search first, in order.
+- **Hit score**: quantitative evaluation of the profile against an anchor hypothesis.
+- **Centrographic statistics**: mean centre, geometric median, standard distance, nearest neighbour,
+  standard deviational ellipse.
+- **Bilingual interface**, Italian and English, auto-detected from the browser language.
+- Local persistence, undo/redo, state sharing via URL, light/dark theme.
 
-Nessun backend, nessuna build, nessun framework. L'unica dipendenza è Leaflet.
+No backend, no build step, no framework. The only dependency is Leaflet.
 
 ---
 
-## Modelli implementati
+## Language
 
-Tutti i modelli producono un campo di **log-verosimiglianza**, convertito in probabilità una sola volta
-con il trucco log-sum-exp. Il risultato è una vera distribuzione discreta: la somma sulle celle è 1.
-Questo elimina alla radice l'underflow numerico che affligge le implementazioni ingenue.
+The interface is available in **Italian** and **English**. The language is chosen from the
+`IT / EN` switch at the top of the panel, or under *View → Interface → Language*, which also offers
+“Follow the browser” (the default). The choice is saved in `localStorage`.
+
+A link can force the language with the `?lang=it` or `?lang=en` parameter; the value becomes the
+stored preference, so a link shared in English stays in English across reloads.
+
+Switching is immediate and does not reload the page: besides the texts, it realigns number
+formatting (`it-IT` / `en-GB`), the dates in the dataset labels and the page metadata
+(`<html lang>`, `<title>`, Open Graph). Labels written or imported by the user are left untouched.
+All strings live in [`js/i18n.js`](js/i18n.js): adding a language means adding one dictionary to
+that file.
+
+---
+
+## Models implemented
+
+Every model produces a **log-likelihood** field, converted to probability exactly once with the
+log-sum-exp trick. The result is a genuine discrete distribution: the sum over the cells is 1.
+This eliminates at the root the numerical underflow that afflicts naive implementations.
 
 ### Rossmo / CGT
 
 ```
-p(i) = Σₙ [ φ · dₙ⁻ᶠ  +  (1−φ) · B^(g−f) / (2B − dₙ)^g ]        φ = 1 se dₙ > B, altrimenti 0
+p(i) = Σₙ [ φ · dₙ⁻ᶠ  +  (1−φ) · B^(g−f) / (2B − dₙ)^g ]        φ = 1 if dₙ > B, else 0
 ```
 
-Fuori dal buffer la verosimiglianza decade come potenza di esponente `f`; **dentro** il buffer il
-termine *cresce* con la distanza, modellando la *buffer zone* che l'autore tende a evitare. Il massimo
-cade quindi sull'**anello** di raggio `B`, non sul punto-evento - è la firma caratteristica del modello.
-La formulazione originale di Rossmo usa la distanza Manhattan, selezionabile nell'interfaccia.
+Outside the buffer the likelihood decays as a power law with exponent `f`; **inside** the buffer the
+term *grows* with distance, modelling the *buffer zone* the offender tends to avoid. The maximum
+therefore falls on the **ring** of radius `B`, not on the event point — the model's signature.
+Rossmo's original formulation uses Manhattan distance, selectable in the interface.
 
-### KDE - kernel gaussiano
+### KDE - Gaussian kernel
 
 ```
 p(i) ∝ Σₙ exp( −dₙ² / 2σ² )
 ```
 
-Descrive dove si concentrano gli **eventi**, non dove risiede l'autore: non incorpora alcuna ipotesi di
-buffer zone. È il riferimento naturale contro cui confrontare i modelli propriamente geoprofilanti.
-Il pulsante *Stima automatica* calcola la bandwidth di Silverman per dati bidimensionali
-(`h = σ·n^(−1/6)`) e propone in alternativa la stima da distanza al primo vicino, di norma più stretta
-su dati clusterizzati.
+It describes where the **events** cluster, not where the offender lives: it carries no buffer-zone
+assumption. It is the natural baseline against which to compare genuine geographic profiling models.
+The *Automatic estimate* button computes Silverman's bandwidth for two-dimensional data
+(`h = σ·n^(−1/6)`) and offers the nearest-neighbour estimate as an alternative, usually tighter on
+clustered data.
 
-### Centro di gravità
+### Centre of gravity
 
 ```
 p(i) ∝ exp( −d(i, C)² / 2σ² )
 ```
 
-Gaussiana isotropa centrata sul baricentro `C`, con `σ` pari alla distanza standard dei punti da `C`
-per il fattore di scala. È il modello più semplice e più fragile: un singolo evento distante sposta
-sensibilmente `C`. Per questo la scheda *Risultati* riporta anche la **mediana geometrica**, stimatore
-robusto calcolato con l'algoritmo di Weiszfeld.
+An isotropic Gaussian centred on the mean centre `C`, with `σ` equal to the standard distance of the
+points from `C` times the scale factor. It is the simplest and most fragile model: a single distant
+event shifts `C` appreciably. That is why the *Results* tab also reports the **geometric median**, a
+robust estimator computed with Weiszfeld's algorithm.
 
 ### Journey-to-crime
 
 ```
-log p(i) = −λ · Σₙ dₙ + cost.
+log p(i) = −λ · Σₙ dₙ + const.
 ```
 
-Decadimento esponenziale sulla distanza aggregata. `λ` è l'inverso di una distanza caratteristica:
-la distanza di dimezzamento è `d½ = ln2 / λ`, mostrata in tempo reale nell'interfaccia. Il calcolo in
-scala logaritmica resta accurato anche con `λ` elevati e molti punti, dove `exp(−λ·Σd)` collasserebbe
-a zero in doppia precisione.
+Exponential decay over the aggregate distance. `λ` is the inverse of a characteristic distance: the
+half distance is `d½ = ln2 / λ`, shown live in the interface. Computing on a log scale stays accurate
+even with large `λ` and many points, where `exp(−λ·Σd)` would collapse to zero in double precision.
 
 ---
 
-## Come vengono rese le superfici
+## How the surfaces are rendered
 
-La griglia di calcolo è costruita in **Web Mercator sferico** (EPSG:3857, lo stesso di Leaflet), così il
-raster combacia al pixel con l'overlay e non subisce la deformazione che si otterrebbe stendendo una
-griglia lat/lon su una mappa di Mercatore. Le **distanze** restano invece geodetiche, calcolate sulle
-coordinate geografiche di ogni cella: proiezione e metrica sono separate.
+The computation grid is built in **spherical Web Mercator** (EPSG:3857, the same as Leaflet), so the
+raster matches the overlay pixel for pixel and does not suffer the distortion you would get by
+stretching a lat/lon grid over a Mercator map. **Distances**, by contrast, stay geodesic, computed on
+the geographic coordinates of each cell: projection and metric are kept separate.
 
-Il campo viene disegnato su canvas con **ricampionamento bilineare** a risoluzione superiore a quella
-della griglia (elimina l'effetto scacchiera senza inventare informazione) e sovrapposto come
+The field is drawn on a canvas with **bilinear resampling** at a resolution higher than the grid's
+(this removes the checkerboard effect without inventing information) and overlaid as an
 `L.imageOverlay`.
 
-**Mappatura per percentile d'area** (predefinita): il colore di una cella indica quanta parte dell'area
-di studio ha probabilità inferiore. L'isolinea a 0,95 racchiude quindi *esattamente* il 5 % dell'area.
-La zona di interesse resta leggibile qualunque sia l'intervallo dinamico del modello - non serve alcun
-parametro di regolazione manuale. È disponibile anche la mappatura lineare sulla probabilità.
+**Area-percentile mapping** (the default): the colour of a cell tells how much of the study area has
+a lower probability. The 0.95 contour therefore encloses *exactly* 5 % of the area. The area of
+interest stays readable whatever the dynamic range of the model — no manual tuning parameter is
+needed. Linear mapping in probability is available too.
 
-Le scale cromatiche (viridis, inferno, magma, cividis, tinta singola) sono tutte **monotone in
-luminosità**: restano leggibili in scala di grigi e con deficit della visione dei colori.
-
----
-
-## Metriche di valutazione
-
-**Picchi di probabilità** - massimi locali della superficie con soppressione dei non-massimi, ordinati.
-Per ciascuno viene indicata la frazione dell'area di studio da perlustrare per raggiungerlo.
-
-**Hit score** - metrica standard di valutazione di un geoprofilo: posizionando un'ipotesi di
-ancoraggio, indica quale percentuale dell'area di studio va perlustrata, seguendo l'ordine di
-probabilità decrescente, prima di raggiungerla. Più è bassa, più il profilo è informativo. Un hit score
-del 50 % equivale a una ricerca casuale.
+The colour scales (viridis, inferno, magma, cividis, single hue) are all **monotone in lightness**:
+they stay readable in greyscale and with colour vision deficiencies.
 
 ---
 
-## Struttura del progetto
+## Evaluation metrics
+
+**Probability peaks** - local maxima of the surface with non-maximum suppression, sorted. For each
+one, the fraction of the study area to be searched in order to reach it is reported.
+
+**Hit score** - the standard metric for evaluating a geoprofile: by placing an anchor hypothesis, it
+reports what percentage of the study area has to be searched, following decreasing probability order,
+before reaching it. The lower it is, the more informative the profile. A hit score of 50 % is
+equivalent to a random search.
+
+---
+
+## Project structure
 
 ```
 .
 ├─ index.html            markup
-├─ styles.css            design system a token, tema chiaro/scuro
-├─ mostro.jpg            immagine del masthead
+├─ styles.css            token-based design system, light/dark theme
+├─ mostro.jpg            masthead image
 └─ js/
-   ├─ main.js            orchestrazione: stato ↔ interfaccia ↔ mappa ↔ modelli
-   ├─ mapview.js         tutto ciò che tocca Leaflet
-   ├─ store.js           stato, annulla/ripeti, persistenza
-   ├─ models.js          i quattro modelli, in scala logaritmica
-   ├─ geo.js             geodesia, metriche, centrografia, griglia
-   ├─ surface.js         raster, scale cromatiche, isolinee, picchi, hit score
-   ├─ data.js            dataset MdF, preset, mappe di base
-   ├─ io.js              CSV, GeoJSON, condivisione via URL
-   └─ dom.js             utilità DOM, formattazione, modali accessibili
+   ├─ main.js            orchestration: state ↔ interface ↔ map ↔ models
+   ├─ mapview.js         everything that touches Leaflet
+   ├─ store.js           state, undo/redo, persistence
+   ├─ models.js          the four models, on a log scale
+   ├─ geo.js             geodesy, metrics, centrography, grid
+   ├─ surface.js         raster, colour scales, contours, peaks, hit score
+   ├─ data.js            MoF dataset, presets, basemaps
+   ├─ io.js              CSV, GeoJSON, URL sharing
+   ├─ i18n.js            Italian/English dictionaries and DOM application
+   └─ dom.js             DOM helpers, formatting, accessible modals
 ```
 
-I moduli di calcolo (`geo`, `models`, `surface`) non conoscono né Leaflet né il DOM: sono verificabili
-in isolamento con Node, senza browser.
+The computation modules (`geo`, `models`, `surface`) know nothing of Leaflet or the DOM: they can be
+tested in isolation with Node, without a browser.
 
 ---
 
-## Avvio in locale
+## Running locally
 
-Serve un **server statico**: la pagina usa moduli ES, che i browser non caricano dal protocollo
-`file://`. Aprendo `index.html` con un doppio clic compare un avviso con le istruzioni.
+A **static server** is required: the page uses ES modules, which browsers refuse to load over the
+`file://` protocol. Opening `index.html` by double-clicking shows a notice with the instructions.
 
 ```bash
 python -m http.server 8000
-# oppure
+# or
 npx serve . -p 8000
 ```
 
-Poi apri <http://localhost:8000>.
+Then open <http://localhost:8000>.
 
 ---
 
-## Deploy
+## Deployment
 
-Il repository è già configurato per **GitHub Pages** tramite `.github/workflows/static.yml`
-(sorgente *GitHub Actions*, nessuna elaborazione Jekyll): a ogni push su `master` l'intera cartella
-viene pubblicata così com'è.
+The repository is already configured for **GitHub Pages** through `.github/workflows/static.yml`
+(*GitHub Actions* source, no Jekyll processing): on every push to `master` the whole folder is
+published as is.
 
-Tutti i riferimenti a risorse locali sono **relativi**, quindi il sito funziona anche sotto il
-sottopercorso di progetto (`/criminal-geoprofiler/`). Non serve alcuna build.
+All references to local resources are **relative**, so the site also works under the project
+subpath (`/criminal-geoprofiler/`). No build step is needed.
 
-Per un altro hosting statico è sufficiente copiare la cartella.
+For any other static hosting, copying the folder is enough.
 
 ---
 
 ## Import / export
 
-**CSV in ingresso** - intestazione riconosciuta per nome di colonna: `lat`/`latitude`/`y` e
-`lon`/`lng`/`longitude`/`x`, con `label` e `date` opzionali. Separatori accettati: virgola, punto e
-virgola, tabulazione. In assenza di intestazione riconoscibile si assume l'ordine `lat, lon, label`.
+**CSV input** - the header is recognised by column name: `lat`/`latitude`/`y` and
+`lon`/`lng`/`longitude`/`x`, with optional `label` and `date`. Accepted separators: comma, semicolon,
+tab. With no recognisable header, the order `lat, lon, label` is assumed.
 
-**GeoJSON** - `FeatureCollection` di geometrie `Point`; le proprietà `label`/`name` e `date` vengono
-lette se presenti.
+**GeoJSON** - a `FeatureCollection` of `Point` geometries; the `label`/`name` and `date` properties
+are read when present.
 
-**Esportazione** - CSV e GeoJSON. Il pulsante *Copia link condivisibile* codifica punti, modello e
-parametri nel frammento dell'URL: chi apre il link ottiene lo stesso stato, senza che nulla transiti
-da un server.
+**Export** - CSV and GeoJSON. The *Copy shareable link* button encodes points, model and parameters
+in the URL fragment: whoever opens the link gets the same state, with nothing passing through a
+server.
 
 ---
 
-## Scorciatoie da tastiera
+## Keyboard shortcuts
 
-| Tasto | Azione |
+| Key | Action |
 |---|---|
-| `Invio` | Calcola la superficie |
-| `A` | Attiva/disattiva l'inserimento per clic |
-| `F` | Inquadra tutti i punti |
-| `Ctrl+Z` / `Ctrl+Y` | Annulla / ripeti |
-| `Esc` | Esce dalla modalità corrente o chiude la finestra |
+| `Enter` | Compute the surface |
+| `A` | Toggle click-to-add entry |
+| `F` | Zoom to all points |
+| `Ctrl+Z` / `Ctrl+Y` | Undo / redo |
+| `Esc` | Leave the current mode or close the dialog |
 
 ---
 
-## Valori di riferimento - caso MdF
+## Reference values - MoF case
 
-Punti di partenza empirici, applicabili con un clic dalla scheda *Info*. Vanno verificati caso per caso.
+Empirical starting points, applicable with one click from the *Info* tab. They should be checked
+case by case.
 
-| Ambito | Rossmo/CGT | KDE | Centro di gravità | Journey-to-crime |
+| Scope | Rossmo/CGT | KDE | Centre of gravity | Journey-to-crime |
 |---|---|---|---|---|
-| Scala provinciale | B=2,5 km · f=1,2 · g=1,6 | σ=2,8 km | scala 1,1× | λ=0,25 (d½≈2,8 km) |
-| Cluster Sud-Ovest | B=1,0 km · f=1,4 · g=1,8 | σ=0,9 km | scala 0,9× | λ=0,60 |
-| Cluster Nord-Est | B=1,2 km · f=1,3 · g=1,7 | σ=1,2 km | scala 1,0× | λ=0,50 |
+| Province scale | B=2.5 km · f=1.2 · g=1.6 | σ=2.8 km | scale 1.1× | λ=0.25 (d½≈2.8 km) |
+| South-West cluster | B=1.0 km · f=1.4 · g=1.8 | σ=0.9 km | scale 0.9× | λ=0.60 |
+| North-East cluster | B=1.2 km · f=1.3 · g=1.7 | σ=1.2 km | scale 1.0× | λ=0.50 |
 
-Il passo della griglia è calcolato automaticamente dall'estensione dei punti (obiettivo ~40 000 celle)
-e resta comunque forzabile a mano.
-
----
-
-## Privacy e dati
-
-Il calcolo avviene **interamente nel browser**: nessun punto-evento lascia il dispositivo. I punti e le
-preferenze sono salvati solo in `localStorage`, in locale.
-
-Il traffico verso l'esterno riguarda: le librerie da CDN (unpkg), le tile cartografiche
-(OpenStreetMap / CARTO) e **Google Analytics**, che raccoglie statistiche di navigazione aggregate.
-Quest'ultimo è bloccabile con un qualsiasi content blocker senza perdere alcuna funzionalità.
+The grid step is computed automatically from the extent of the points (targeting ~40,000 cells) and
+can still be forced by hand.
 
 ---
 
-## Limiti noti
+## Privacy and data
 
-- I modelli trattano ogni punto-evento come indipendente: nessuna correlazione temporale, nessuna
-  ponderazione per attendibilità dell'attribuzione.
-- La superficie è calcolata su spazio libero: non tiene conto di viabilità, orografia, distribuzione
-  della popolazione o barriere. Sono estensioni possibili, non implementate.
-- Il tetto di 260 000 celle previene il blocco del browser ma limita il dettaglio su aree molto estese
-  con passo molto fine.
-- Nessun geocoder: l'inserimento avviene per clic o per coordinate, non per indirizzo.
-- Il dataset MdF è di dominio pubblico e riferito a **località**, non a persone. L'attribuzione dei
-  singoli episodi alla serie è, in alcuni casi, dibattuta.
+The computation runs **entirely in the browser**: no event point leaves the device. Points and
+preferences are stored only in `localStorage`, locally.
+
+Outbound traffic covers: the CDN libraries (unpkg), the map tiles (OpenStreetMap / CARTO) and
+**Google Analytics**, which collects aggregate browsing statistics. The latter can be blocked with
+any content blocker without losing any functionality.
 
 ---
 
-## Crediti e licenza
+## Known limitations
 
-Cartografia © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors ·
-tile © [CARTO](https://carto.com/attributions). Motore mappa: [Leaflet](https://leafletjs.com/) 1.9.4.
-Scale cromatiche viridis, inferno, magma e cividis dal progetto matplotlib (CC0).
+- The models treat every event point as independent: no temporal correlation, no weighting by how
+  reliable the attribution is.
+- The surface is computed over free space: it accounts for neither road networks, nor terrain,
+  nor population distribution, nor barriers. These are possible extensions, not implemented.
+- The 260,000-cell cap prevents the browser from freezing but limits detail over very large areas
+  with a very fine step.
+- No geocoder: entry happens by click or by coordinates, not by address.
+- The MoF dataset is in the public domain and refers to **locations**, not to people. The
+  attribution of individual episodes to the series is, in some cases, disputed.
 
-**Licenza:** BSD 2-Clause · © 2025 Giuseppe Sorgentone
+---
+
+## Credits and licence
+
+Cartography © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors ·
+tiles © [CARTO](https://carto.com/attributions). Map engine: [Leaflet](https://leafletjs.com/) 1.9.4.
+The viridis, inferno, magma and cividis colour scales come from the matplotlib project (CC0).
+
+**Licence:** BSD 2-Clause · © 2025 Giuseppe Sorgentone

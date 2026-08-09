@@ -6,7 +6,7 @@
  * (punti e ancoraggio), non le preferenze di visualizzazione.
  */
 
-const STORAGE_KEY = 'criminal-geoprofiler/v2';
+export const STORAGE_KEY = 'criminal-geoprofiler/v2';
 const HISTORY_LIMIT = 60;
 
 export const DEFAULT_SETTINGS = {
@@ -33,6 +33,7 @@ export const DEFAULT_SETTINGS = {
   showEllipse: false,
 
   theme: 'dark',
+  lang: 'auto',        // 'it' | 'en' | 'auto' (lingue dichiarate dal browser)
   tutorialSeen: false,
 };
 
@@ -153,6 +154,16 @@ export function createStore() {
       pushHistory();
       state.points = [];
       emit('points');
+    },
+
+    /**
+     * Rigenera le etichette dei punti (cambio di lingua). Non emette: non è un
+     * cambiamento di dati e non deve invalidare la superficie né la cronologia;
+     * chi la invoca ridisegna già l'interfaccia.
+     */
+    relabelPoints(relabel) {
+      state.points = state.points.map((p) => ({ ...p, label: relabel(p) }));
+      persist();
     },
 
     /* ── Ancoraggio ── */

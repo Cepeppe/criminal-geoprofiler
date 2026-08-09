@@ -1,5 +1,7 @@
 /** dom.js - utilità DOM, formattazione numerica, notifiche e modali accessibili. */
 
+import { locale } from './i18n.js';
+
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
@@ -15,10 +17,19 @@ export const show = (elm, visible) => { if (elm) elm.hidden = !visible; };
 
 /* ─────────────────────────── Formattazione ─────────────────────────── */
 
-const nf = (min, max) => new Intl.NumberFormat('it-IT', { minimumFractionDigits: min, maximumFractionDigits: max });
+// I formattatori dipendono dalla lingua attiva, che può cambiare a runtime:
+// vengono creati su richiesta e riusati finché locale e cifre non cambiano.
+const formatters = new Map();
 
-export const fmtInt = (v) => new Intl.NumberFormat('it-IT').format(Math.round(v));
-export const fmtNum = (v, d = 2) => nf(d, d).format(v);
+function nf(options) {
+  const key = `${locale()}|${options.minimumFractionDigits ?? ''}|${options.maximumFractionDigits ?? ''}`;
+  let f = formatters.get(key);
+  if (!f) { f = new Intl.NumberFormat(locale(), options); formatters.set(key, f); }
+  return f;
+}
+
+export const fmtInt = (v) => nf({}).format(Math.round(v));
+export const fmtNum = (v, d = 2) => nf({ minimumFractionDigits: d, maximumFractionDigits: d }).format(v);
 
 export function fmtDistance(km) {
   if (!Number.isFinite(km)) return '–';

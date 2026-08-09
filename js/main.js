@@ -12,12 +12,14 @@ import {
   fmtInt, fmtNum, fmtDistance, fmtArea, fmtPercent, fmtCoord, fmtDuration,
 } from './dom.js';
 import { createStore } from './store.js';
-import { loadDataset, PRESETS } from './data.js';
+import { loadDataset, PRESETS, presetName, relocalizeLabel } from './data.js';
 import {
   buildGrid, getMetric, centroid, geometricMedian, standardDistanceKm,
   nearestNeighborStats, standardDeviationalEllipse, maxPairDistanceKm,
 } from './geo.js';
-import { METHODS, computeSurface, suggestBandwidth, halfDistanceFromLambda } from './models.js';
+import {
+  METHODS, methodLabel, methodDesc, computeSurface, suggestBandwidth, halfDistanceFromLambda,
+} from './models.js';
 import {
   percentileField, linearField, renderRaster, canvasToUrl, findPeaks, hitScore,
   drawLegendRamp, CONTOUR_LEVELS,
@@ -27,14 +29,15 @@ import {
   encodeShareUrl, decodeShareUrl, copyToClipboard,
 } from './io.js';
 import { createMapView } from './mapview.js';
+import { t, applyI18n, setLang, getLang, resolveLang, langFromUrl } from './i18n.js';
 
 /* ═══════════════════════════ Avvio ═══════════════════════════ */
 
 if (!window.L) {
   document.body.innerHTML =
     '<div class="file-guard"><div class="file-guard__box">' +
-    '<h2>Libreria cartografica non disponibile</h2>' +
-    '<p>Leaflet non è stato caricato dalla CDN. Verifica la connessione o eventuali blocchi di rete, poi ricarica la pagina.</p>' +
+    `<h2>${t('app.noLeaflet.title')}</h2>` +
+    `<p>${t('app.noLeaflet.body')}</p>` +
     '</div></div>';
   throw new Error('Leaflet non disponibile');
 }
@@ -69,7 +72,6 @@ const el = {
 
   method: $('#method'),
   methodDesc: $('#methodDesc'),
-  journeyHalf: $('#journeyHalf'),
   distMetric: $('#distMetric'),
   gridAuto: $('#gridAuto'),
   gridStep: $('#gridStep'),
@@ -88,6 +90,7 @@ const el = {
   showCentro: $('#showCentro'),
   showEllipse: $('#showEllipse'),
   theme: $('#theme'),
+  lang: $('#lang'),
 
   peaksList: $('#peaksList'),
   peaksEmpty: $('#peaksEmpty'),
@@ -131,7 +134,7 @@ const view = createMapView('map', {
     } else if (mode === 'anchor') {
       store.setAnchor(latlng);
       setAnchorMode(false);
-      toast('Ipotesi di ancoraggio posizionata.', 'ok');
+      toast(t('toast.anchorSet'), 'ok');
     }
   },
   onRemovePoint: (index) => store.removePoint(index),
@@ -157,17 +160,51 @@ on(prefersLight, 'change', () => {
   if (store.state.settings.theme === 'auto') applyTheme('auto');
 });
 
+/* ═══════════════════════════ Lingua ═══════════════════════════ */
+
+/**
+ * Cambia lingua senza ricaricare: riscrive i nodi annotati e poi rigenera
+ * tutto ciò che è prodotto da JavaScript. Nessun ricalcolo del modello — la
+ * superficie non dipende dalla lingua — quindi `current` resta valido.
+ */
+function applyLanguage(pref) {
+  setLang(resolveLang(pref));
+  applyI18n();
+
+  // Le etichette del dataset contengono una data scritta a parole
+  store.relabelPoints(relocalizeLabel);
+
+  syncFormFromState();   // riallinea anche i due selettori di lingua
+  renderPointsList();
+  renderStats();
+  renderCentrographic();
+  renderPeaks();
+  updateHitScore();
+  updateGridInfo();
+  updateLegend();
+  setStale(stale);
+  setAnchorMode(el.btnSetAnchor.getAttribute('aria-pressed') === 'true');
+  view.renderPoints(store.state.points, { showLabels: store.state.settings.showLabels });
+}
+
+function syncLangControls(pref) {
+  if (el.lang) el.lang.value = pref;
+  for (const btn of $$('.langswitch__btn')) {
+    btn.setAttribute('aria-pressed', String(btn.dataset.lang === getLang()));
+  }
+}
+
 /* ═══════════════════════════ Schede ═══════════════════════════ */
 
 function initTabs() {
   const tabs = $$('.tab');
-  const panes = tabs.map((t) => $(`#${t.getAttribute('aria-controls')}`));
+  const panes = tabs.map((tab) => $(`#${tab.getAttribute('aria-controls')}`));
 
   const select = (index) => {
-    tabs.forEach((t, i) => {
+    tabs.forEach((tab, i) => {
       const active = i === index;
-      t.setAttribute('aria-selected', String(active));
-      t.tabIndex = active ? 0 : -1;
+      tab.setAttribute('aria-selected', String(active));
+      tab.tabIndex = active ? 0 : -1;
       if (panes[i]) {
         panes[i].hidden = !active;
         panes[i].classList.toggle('is-active', active);
@@ -278,7 +315,7 @@ function renderPointsList() {
     body.className = 'p-body';
     const name = document.createElement('span');
     name.className = 'p-name';
-    name.textContent = p.label || `Punto ${i + 1}`;
+    name.textContent = p.label || t('data.point.n', { n: i + 1 });
     const coord = document.createElement('span');
     coord.className = 'p-coord';
     coord.textContent = fmtCoord(p.lat, p.lng);
@@ -286,8 +323,8 @@ function renderPointsList() {
 
     const del = document.createElement('button');
     del.className = 'icon-btn p-del';
-    del.title = 'Rimuovi punto';
-    del.setAttribute('aria-label', `Rimuovi punto ${i + 1}`);
+    del.title = t('action.removePoint');
+    del.setAttribute('aria-label', t('action.removePointN', { n: i + 1 }));
     del.textContent = '✕';
     on(del, 'click', (e) => { e.stopPropagation(); store.removePoint(i); });
 
@@ -321,16 +358,16 @@ function renderStats() {
   const span = maxPairDistanceKm(points, metric);
 
   const rows = [
-    ['Estensione massima', fmtDistance(span)],
-    ['Baricentro', fmtCoord(c.lat, c.lng)],
-    ['Mediana geometrica', med ? fmtCoord(med.lat, med.lng) : '–'],
-    ['Distanza standard', fmtDistance(sd)],
-    ['Primo vicino (mediana)', nn ? fmtDistance(nn.median) : '–'],
-    ['Primo vicino (min–max)', nn ? `${fmtDistance(nn.min)} – ${fmtDistance(nn.max)}` : '–'],
+    [t('res.stats.span'), fmtDistance(span)],
+    [t('res.stats.centroid'), fmtCoord(c.lat, c.lng)],
+    [t('res.stats.median'), med ? fmtCoord(med.lat, med.lng) : '–'],
+    [t('res.stats.sd'), fmtDistance(sd)],
+    [t('res.stats.nnMedian'), nn ? fmtDistance(nn.median) : '–'],
+    [t('res.stats.nnRange'), nn ? `${fmtDistance(nn.min)} – ${fmtDistance(nn.max)}` : '–'],
   ];
   if (ell) {
-    rows.push(['Ellisse 1σ (semiassi)', `${fmtDistance(ell.semiMajorKm)} × ${fmtDistance(ell.semiMinorKm)}`]);
-    rows.push(['Azimut asse maggiore', `${fmtNum(ell.azimuthDeg, 0)}°`]);
+    rows.push([t('res.stats.ellipse'), `${fmtDistance(ell.semiMajorKm)} × ${fmtDistance(ell.semiMinorKm)}`]);
+    rows.push([t('res.stats.azimuth'), `${fmtNum(ell.azimuthDeg, 0)}°`]);
   }
 
   for (const [label, value] of rows) {
@@ -361,14 +398,14 @@ function renderCentrographic() {
 async function runAnalysis() {
   const { points, settings } = store.state;
   if (!points.length) {
-    toast('Aggiungi almeno un punto-evento prima di calcolare.', 'error');
+    toast(t('toast.needPoint'), 'error');
     tabs.select(0);
     return;
   }
 
   const btn = el.btnRun;
   btn.disabled = true;
-  btn.textContent = 'Calcolo in corso…';
+  btn.textContent = t('model.running');
   let succeeded = false;
 
   // Lascia ridisegnare l'interfaccia prima di occupare il thread principale
@@ -400,19 +437,28 @@ async function runAnalysis() {
     setText(el.kpiCells, `${fmtInt(grid.n)}`);
     setText(el.kpiRes, `${fmtInt(grid.groundStepM)} m`);
     setText(el.kpiTime, fmtDuration(elapsedMs));
-    setText(el.gridInfo,
-      `Griglia attiva: ${grid.nx} × ${grid.ny} celle (${fmtInt(grid.n)}), passo ${fmtInt(grid.groundStepM)} m al suolo.`);
+    updateGridInfo();
 
     await renderSurface({ rebuildField: true });
     updateHitScore();
     succeeded = true;
   } catch (err) {
     console.error(err);
-    toast(`Calcolo non riuscito: ${err.message}`, 'error', 6000);
+    toast(t('toast.computeFailed', { message: err.message }), 'error', 6000);
   } finally {
     btn.disabled = false;
     setStale(succeeded ? false : stale);
   }
+}
+
+/** Descrive la griglia effettivamente usata; senza risultato, la nota di default. */
+function updateGridInfo() {
+  const grid = current?.grid;
+  setText(el.gridInfo, grid
+    ? t('model.grid.active', {
+        nx: grid.nx, ny: grid.ny, n: fmtInt(grid.n), step: fmtInt(grid.groundStepM),
+      })
+    : t('model.grid.hint'));
 }
 
 /** Ridisegna il raster dai risultati già calcolati. */
@@ -453,7 +499,7 @@ function setStale(value) {
   if (!current) value = false;
   stale = value;
   show(el.legendStale, value);
-  el.btnRun.textContent = value ? 'Ricalcola superficie' : 'Calcola superficie';
+  el.btnRun.textContent = t(value ? 'model.rerun' : 'model.run');
   el.btnRun.classList.toggle('btn--attention', value);
 }
 
@@ -468,6 +514,7 @@ function clearSurface() {
   setText(el.kpiCells, '–');
   setText(el.kpiRes, '–');
   setText(el.kpiTime, '–');
+  updateGridInfo();
   updateHitScore();
 }
 
@@ -485,24 +532,22 @@ function updateLegend() {
   });
 
   const percentile = settings.colorScale === 'percentile';
-  setText(el.legendTitle, percentile ? 'Percentile d\'area' : 'Probabilità della cella');
+  setText(el.legendTitle, t(percentile ? 'legend.percentile' : 'legend.linear'));
 
   el.legendScale.replaceChildren();
   const labels = percentile
     ? ['0%', '50%', '100%']
-    : ['0', '½ max', `${fmtNum(current.maxProb * 100, 4)}%`];
-  for (const t of labels) {
+    : ['0', t('legend.halfMax'), `${fmtNum(current.maxProb * 100, 4)}%`];
+  for (const label of labels) {
     const s = document.createElement('span');
-    s.textContent = t;
+    s.textContent = label;
     el.legendScale.appendChild(s);
   }
 
   const contourNote = settings.contours
-    ? `Isolinee ai percentili ${CONTOUR_LEVELS.map((l) => fmtNum(l * 100, 0)).join(' · ')}. `
+    ? t('legend.contourNote', { levels: CONTOUR_LEVELS.map((l) => fmtNum(l * 100, 0)).join(' · ') })
     : '';
-  const scaleNote = percentile
-    ? 'Il colore indica quanta parte dell\'area di studio ha probabilità inferiore.'
-    : 'Il colore è proporzionale alla probabilità della cella.';
+  const scaleNote = t(percentile ? 'legend.notePercentile' : 'legend.noteLinear');
   setHtml(el.legendNotes, `${contourNote}${scaleNote}`);
 }
 
@@ -511,6 +556,9 @@ on($('#btnLegendToggle'), 'click', (e) => {
   el.legendCard.dataset.collapsed = String(!collapsed);
   e.currentTarget.textContent = collapsed ? '–' : '+';
   e.currentTarget.setAttribute('aria-expanded', String(collapsed));
+  e.currentTarget.setAttribute('aria-label', t(collapsed ? 'legend.collapse' : 'legend.expand'));
+  // Il testo tradotto dipende dallo stato, non è più quello dell'attributo
+  e.currentTarget.setAttribute('data-i18n-label', collapsed ? 'legend.collapse' : 'legend.expand');
 });
 
 /* ═══════════════════════════ Picchi ═══════════════════════════ */
@@ -535,13 +583,13 @@ function renderPeaks() {
     const intensity = current?.maxProb ? peak.prob / current.maxProb : 0;
     const meta = document.createElement('span');
     meta.className = 'k-meta';
-    meta.textContent = `intensità ${fmtNum(intensity * 100, 0)}% del picco principale`;
+    meta.textContent = t('res.peaks.intensity', { p: fmtNum(intensity * 100, 0) });
     body.append(coord, document.createElement('br'), meta);
 
     const pct = document.createElement('span');
     pct.className = 'k-pct';
-    pct.title = 'Frazione dell\'area di studio da perlustrare per raggiungere questo picco';
-    pct.textContent = `top ${fmtNum((1 - peak.percentile) * 100, 2)}%`;
+    pct.title = t('res.peaks.topTitle');
+    pct.textContent = t('res.peaks.top', { p: fmtNum((1 - peak.percentile) * 100, 2) });
 
     const go = () => view.flyTo(peak.lat, peak.lng, 14);
     on(li, 'click', go);
@@ -556,9 +604,7 @@ function renderPeaks() {
 
 function setAnchorMode(active) {
   el.btnSetAnchor.setAttribute('aria-pressed', String(active));
-  el.btnSetAnchor.textContent = active
-    ? 'Clicca sulla mappa… (Esc per annullare)'
-    : 'Posiziona ipotesi di ancoraggio';
+  el.btnSetAnchor.textContent = t(active ? 'res.hit.clickMap' : 'res.hit.setAnchor');
   view.setClickMode(active ? 'anchor' : (addMode ? 'add' : null));
 }
 
@@ -574,7 +620,7 @@ function updateHitScore() {
   if (!current) {
     show(el.anchorResult, true);
     setText(el.hitScore, '–');
-    setText(el.hitArea, 'calcola prima la superficie');
+    setText(el.hitArea, t('res.hit.needSurface'));
     return;
   }
 
@@ -582,12 +628,14 @@ function updateHitScore() {
   show(el.anchorResult, true);
 
   if (!result) {
-    setText(el.hitScore, 'fuori griglia');
+    setText(el.hitScore, t('res.hit.outOfGrid'));
     setText(el.hitArea, '–');
     return;
   }
   setText(el.hitScore, fmtPercent(result.score, 2));
-  setText(el.hitArea, `${fmtArea(result.searchAreaKm2)} su ${fmtArea(result.totalAreaKm2)}`);
+  setText(el.hitArea, t('res.hit.areaOf', {
+    search: fmtArea(result.searchAreaKm2), total: fmtArea(result.totalAreaKm2),
+  }));
 }
 
 /* ═══════════════════════════ Modalità inserimento ═══════════════════════════ */
@@ -629,6 +677,7 @@ function syncFormFromState() {
   el.showCentro.checked = settings.showCentro;
   el.showEllipse.checked = settings.showEllipse;
   el.theme.value = settings.theme;
+  syncLangControls(settings.lang);
 
   setText(el.opacityOut, `${Math.round(settings.opacity * 100)}%`);
   setText(el.thresholdOut, `${Math.round(settings.threshold * 100)}%`);
@@ -643,12 +692,15 @@ function updateMethodPanels() {
     const panel = $(`#p-${key}`);
     if (panel) panel.hidden = key !== active;
   }
-  setHtml(el.methodDesc, METHODS[active]?.desc || '');
+  setHtml(el.methodDesc, METHODS[active] ? methodDesc(active) : '');
 }
 
+// Il valore vive fuori dal testo tradotto (che applyI18n riscrive per intero):
+// lo si cerca a ogni aggiornamento, così resta corretto qualunque cosa accada
+// al nodo che lo ospita.
 function updateJourneyHalf() {
   const lambda = store.state.settings.params.journey.lambda;
-  setText(el.journeyHalf, `${fmtNum(halfDistanceFromLambda(lambda), 2)} km`);
+  setText($('#journeyHalf'), `${fmtNum(halfDistanceFromLambda(lambda), 2)} km`);
 }
 
 function bindControls() {
@@ -676,13 +728,13 @@ function bindControls() {
 
   on($('#btnAutoSigma'), 'click', () => {
     const { points, settings } = store.state;
-    if (points.length < 2) { toast('Servono almeno 2 punti per stimare la bandwidth.', 'error'); return; }
+    if (points.length < 2) { toast(t('toast.needTwoPoints'), 'error'); return; }
 
     const s = suggestBandwidth(points, getMetric(settings.distMetric));
     store.setMethodParam('kde', 'sigma', Number(s.silverman.toFixed(2)));
     $('#kdeSigma').value = s.silverman.toFixed(2);
-    const alt = s.nearestNeighbor ? ` Alternativa da primo vicino: ${fmtNum(s.nearestNeighbor, 2)} km.` : '';
-    toast(`σ = ${fmtNum(s.silverman, 2)} km (Silverman).${alt}`, 'ok', 6000);
+    const alt = s.nearestNeighbor ? t('toast.sigmaAlt', { alt: fmtNum(s.nearestNeighbor, 2) }) : '';
+    toast(`${t('toast.sigma', { sigma: fmtNum(s.silverman, 2) })}${alt}`, 'ok', 6000);
   });
 
   on(el.distMetric, 'change', () => {
@@ -737,6 +789,19 @@ function bindControls() {
   on(el.showEllipse, 'change', () => { store.setSetting('showEllipse', el.showEllipse.checked); renderCentrographic(); });
   on(el.theme, 'change', () => { store.setSetting('theme', el.theme.value); applyTheme(el.theme.value); });
 
+  on(el.lang, 'change', () => {
+    store.setSetting('lang', el.lang.value);
+    applyLanguage(el.lang.value);
+    toast(t('lang.changed'), 'ok');
+  });
+  for (const btn of $$('.langswitch__btn')) {
+    on(btn, 'click', () => {
+      if (btn.dataset.lang === getLang()) return;
+      store.setSetting('lang', btn.dataset.lang);
+      applyLanguage(btn.dataset.lang);
+    });
+  }
+
   /* ── Dati ── */
   on($('#btnLoadAll'), 'click', () => loadPreset('all'));
   on($('#btnLoadSW'), 'click', () => loadPreset('sw'));
@@ -744,7 +809,7 @@ function bindControls() {
   on($('#btnClearPoints'), 'click', () => {
     if (!store.state.points.length) return;
     store.clearPoints();
-    toast('Punti rimossi. Ctrl+Z per annullare.', 'info');
+    toast(t('toast.pointsCleared'), 'info');
   });
 
   on(el.btnAddMode, 'click', () => setAddMode(el.btnAddMode.getAttribute('aria-pressed') !== 'true'));
@@ -758,7 +823,7 @@ function bindControls() {
   /* ── Ancoraggio ── */
   on(el.btnSetAnchor, 'click', () =>
     setAnchorMode(el.btnSetAnchor.getAttribute('aria-pressed') !== 'true'));
-  on(el.btnClearAnchor, 'click', () => { store.setAnchor(null); toast('Ancoraggio rimosso.', 'info'); });
+  on(el.btnClearAnchor, 'click', () => { store.setAnchor(null); toast(t('toast.anchorCleared'), 'info'); });
 
   /* ── Preset di parametri ── */
   for (const btn of $$('[data-apply]')) {
@@ -769,7 +834,7 @@ function bindControls() {
       store.setSetting('method', method);
       store.setMethodParams(method, preset[method]);
       syncFormFromState();
-      toast(`Applicato: ${preset.name} - ${METHODS[method].label}.`, 'ok');
+      toast(t('toast.presetApplied', { preset: presetName(presetKey), method: methodLabel(method) }), 'ok');
       tabs.select(1);
     });
   }
@@ -779,11 +844,11 @@ function bindControls() {
   on(el.fileInput, 'change', handleFileImport);
   on($('#btnExportCsv'), 'click', () => {
     if (!requirePoints()) return;
-    downloadText('geoprofiler-punti.csv', toCsv(store.state.points), 'text/csv;charset=utf-8');
+    downloadText(t('data.io.csvName'), toCsv(store.state.points), 'text/csv;charset=utf-8');
   });
   on($('#btnExportGeo'), 'click', () => {
     if (!requirePoints()) return;
-    downloadText('geoprofiler-punti.geojson',
+    downloadText(t('data.io.geoName'),
       toGeoJson(store.state.points, { generator: 'Criminal Geoprofiler' }),
       'application/geo+json');
   });
@@ -791,23 +856,23 @@ function bindControls() {
     if (!requirePoints()) return;
     const url = encodeShareUrl(store.state.points, store.state.settings);
     const ok = await copyToClipboard(url);
-    toast(ok ? 'Link copiato negli appunti.' : 'Copia non riuscita: seleziona manualmente l\'URL.', ok ? 'ok' : 'error');
+    toast(t(ok ? 'toast.linkCopied' : 'toast.linkFailed'), ok ? 'ok' : 'error');
   });
 
   on($('#btnResetAll'), 'click', () => {
-    if (!confirm('Ripristinare le impostazioni di fabbrica e cancellare tutti i punti?')) return;
+    if (!confirm(t('confirm.resetAll'))) return;
     clearSurface();
     store.resetAll();
-    syncFormFromState();
+    applyLanguage(store.state.settings.lang);
     applyTheme(store.state.settings.theme);
     view.setBasemap(store.state.settings.basemap);
-    toast('Impostazioni ripristinate.', 'ok');
+    toast(t('toast.settingsReset'), 'ok');
   });
 }
 
 function requirePoints() {
   if (store.state.points.length) return true;
-  toast('Non ci sono punti da esportare.', 'error');
+  toast(t('toast.nothingToExport'), 'error');
   return false;
 }
 
@@ -815,14 +880,14 @@ function loadPreset(key) {
   const points = loadDataset(key);
   store.setPoints(points);
   view.fitPoints(points);
-  toast(`Caricati ${points.length} punti-evento.`, 'ok');
+  toast(t('toast.loaded', { n: points.length }), 'ok');
   if (isMobile()) closeSidebar();
 }
 
 function addFromCoordInput() {
   const parsed = parseLatLng(el.coordInput.value);
   if (!parsed) {
-    toast('Coordinate non riconosciute. Formato atteso: «43.794588, 11.082310».', 'error', 5000);
+    toast(t('toast.badCoord'), 'error', 5000);
     el.coordInput.focus();
     return;
   }
@@ -842,27 +907,29 @@ async function handleFileImport(e) {
     const { points, skipped } = isJson ? parseGeoJson(text) : parseCsv(text);
 
     if (!points.length) {
-      toast('Nessun punto valido trovato nel file.', 'error', 5000);
+      toast(t('toast.noValidPoints'), 'error', 5000);
       return;
     }
     store.setPoints(points);
     view.fitPoints(points);
     toast(
-      `Importati ${points.length} punti${skipped ? ` (${skipped} righe ignorate)` : ''}.`,
+      skipped
+        ? t('toast.importedSkipped', { n: points.length, skipped })
+        : t('toast.imported', { n: points.length }),
       'ok', 5000,
     );
   } catch (err) {
     console.error(err);
-    toast(`File non leggibile: ${err.message}`, 'error', 6000);
+    toast(t('toast.fileUnreadable', { message: err.message }), 'error', 6000);
   }
 }
 
 /* ═══════════════════════════ Tutorial ═══════════════════════════ */
 
+// Il tutorial si presenta una sola volta: chiuderlo equivale a dire «visto».
+// Resta raggiungibile dalla scheda Info, quindi non serve una spunta apposita.
 const tutorial = createModal($('#tutorialModal'), {
-  onClose: () => {
-    if ($('#tutDontShow')?.checked) store.setSetting('tutorialSeen', true);
-  },
+  onClose: () => store.setSetting('tutorialSeen', true),
 });
 on($('#btnCloseTutorial'), 'click', () => tutorial.close());
 on($('#btnStart'), 'click', () => tutorial.close());
@@ -910,6 +977,15 @@ store.subscribe((state, changed) => {
 /* ═══════════════════════════ Inizializzazione ═══════════════════════════ */
 
 function boot() {
+  // `?lang=` (o `#…&lang=`) ha la precedenza e diventa la preferenza salvata:
+  // un link condiviso in inglese deve restare in inglese anche dopo il reload.
+  const forced = langFromUrl();
+  if (forced) store.setSetting('lang', forced);
+
+  setLang(resolveLang(store.state.settings.lang));
+  applyI18n();
+  store.relabelPoints(relocalizeLabel);
+
   applyTheme(store.state.settings.theme);
   view.setBasemap(store.state.settings.basemap);
   syncFormFromState();
@@ -929,7 +1005,7 @@ function boot() {
       if (Object.keys(patch).length) store.setMethodParams(target, patch);
     }
     syncFormFromState();
-    toast(`Caricati ${shared.points.length} punti dal link condiviso.`, 'ok', 5000);
+    toast(t('toast.sharedLoaded', { n: shared.points.length }), 'ok', 5000);
   }
 
   renderPointsList();

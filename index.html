@@ -6,18 +6,25 @@
   <title>Criminal Geoprofiler - Mostro di Firenze</title>
 
   <meta name="description" content="Strumento didattico 100% client-side di geoprofilazione criminale: inserisci punti-evento su mappa e calcola superfici di probabilità con Rossmo/CGT, KDE, centro di gravità e journey-to-crime. Dataset del caso Mostro di Firenze incluso." />
-  <meta name="keywords" content="geoprofilazione, geographic profiling, Criminal Geographic Targeting, CGT, Rossmo, KDE, kernel density, journey to crime, centrografia, hit score, criminologia, GIS, Leaflet, Mostro di Firenze" />
+  <meta name="keywords" content="geoprofilazione, geographic profiling, Criminal Geographic Targeting, CGT, Rossmo, KDE, kernel density, journey to crime, centrografia, hit score, criminologia, GIS, Leaflet, Mostro di Firenze, Monster of Florence" />
   <meta name="author" content="Giuseppe Sorgentone" />
   <link rel="canonical" href="https://cepeppe.github.io/criminal-geoprofiler/" />
+
+  <!-- Versioni linguistiche: la lingua è selezionabile anche via ?lang= -->
+  <link rel="alternate" hreflang="it" href="https://cepeppe.github.io/criminal-geoprofiler/?lang=it" />
+  <link rel="alternate" hreflang="en" href="https://cepeppe.github.io/criminal-geoprofiler/?lang=en" />
+  <link rel="alternate" hreflang="x-default" href="https://cepeppe.github.io/criminal-geoprofiler/" />
 
   <meta name="color-scheme" content="dark light" />
   <!-- Aggiornata da main.js al cambio di tema -->
   <meta name="theme-color" content="#080c18" />
 
+  <!-- Titolo, descrizioni e og:locale sono riscritti da i18n.js secondo la lingua -->
   <meta property="og:title" content="Criminal Geoprofiler - Mostro di Firenze" />
   <meta property="og:description" content="Superfici di probabilità geoprofilanti (Rossmo/CGT, KDE, centro di gravità, journey-to-crime) calcolate nel browser, con dataset del caso Mostro di Firenze." />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="it_IT" />
+  <meta property="og:locale:alternate" content="en_GB" />
   <meta property="og:url" content="https://cepeppe.github.io/criminal-geoprofiler/" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Criminal Geoprofiler - Mostro di Firenze" />
@@ -30,7 +37,7 @@
     "name": "Criminal Geoprofiler - Mostro di Firenze",
     "applicationCategory": "EducationalApplication",
     "operatingSystem": "Web",
-    "inLanguage": "it-IT",
+    "inLanguage": ["it-IT", "en-GB"],
     "url": "https://cepeppe.github.io/criminal-geoprofiler/",
     "author": { "@type": "Person", "name": "Giuseppe Sorgentone" },
     "license": "https://opensource.org/licenses/BSD-2-Clause",
@@ -59,29 +66,37 @@
 </head>
 
 <body>
-<a class="skip-link" href="#map">Salta alla mappa</a>
+<a class="skip-link" href="#map" data-i18n="app.skipToMap">Salta alla mappa</a>
 
 <div class="app" id="app">
 
   <!-- ══════════════════════ SIDEBAR ══════════════════════ -->
-  <aside class="sidebar" id="sidebar" aria-label="Pannello di controllo">
+  <aside class="sidebar" id="sidebar" data-i18n-label="app.sidebarLabel" aria-label="Pannello di controllo">
 
     <header class="masthead">
       <div class="masthead__art" role="presentation"></div>
       <div class="masthead__body">
-        <p class="masthead__eyebrow">Geoprofilazione criminale</p>
+        <p class="masthead__eyebrow" data-i18n="masthead.eyebrow">Geoprofilazione criminale</p>
         <h1 class="masthead__title">Criminal Geoprofiler</h1>
-        <p class="masthead__sub">Caso «Mostro di Firenze» · 1968–1985</p>
+        <p class="masthead__sub" data-i18n="masthead.sub">Caso «Mostro di Firenze» · 1968–1985</p>
       </div>
-      <button id="btnCloseSidebar" class="icon-btn masthead__close only-mobile" title="Chiudi pannello" aria-label="Chiudi pannello">✕</button>
+
+      <div class="langswitch" role="group" data-i18n-label="lang.switcher" aria-label="Lingua dell'interfaccia">
+        <button type="button" class="langswitch__btn" data-lang="it" aria-pressed="true">IT</button>
+        <button type="button" class="langswitch__btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+
+      <button id="btnCloseSidebar" class="icon-btn masthead__close only-mobile"
+              data-i18n-title="app.closeSidebar" data-i18n-label="app.closeSidebar"
+              title="Chiudi pannello" aria-label="Chiudi pannello">✕</button>
     </header>
 
-    <nav class="tabs" role="tablist" aria-label="Sezioni">
-      <button class="tab" role="tab" id="tab-dati"       aria-controls="panel-dati"       aria-selected="true"  tabindex="0">Dati</button>
-      <button class="tab" role="tab" id="tab-modello"    aria-controls="panel-modello"    aria-selected="false" tabindex="-1">Modello</button>
-      <button class="tab" role="tab" id="tab-vista"      aria-controls="panel-vista"      aria-selected="false" tabindex="-1">Vista</button>
-      <button class="tab" role="tab" id="tab-risultati"  aria-controls="panel-risultati"  aria-selected="false" tabindex="-1">Risultati</button>
-      <button class="tab" role="tab" id="tab-info"       aria-controls="panel-info"       aria-selected="false" tabindex="-1">Info</button>
+    <nav class="tabs" role="tablist" data-i18n-label="app.tabsLabel" aria-label="Sezioni">
+      <button class="tab" role="tab" id="tab-dati"       aria-controls="panel-dati"       aria-selected="true"  tabindex="0"  data-i18n="tab.data">Dati</button>
+      <button class="tab" role="tab" id="tab-modello"    aria-controls="panel-modello"    aria-selected="false" tabindex="-1" data-i18n="tab.model">Modello</button>
+      <button class="tab" role="tab" id="tab-vista"      aria-controls="panel-vista"      aria-selected="false" tabindex="-1" data-i18n="tab.view">Vista</button>
+      <button class="tab" role="tab" id="tab-risultati"  aria-controls="panel-risultati"  aria-selected="false" tabindex="-1" data-i18n="tab.results">Risultati</button>
+      <button class="tab" role="tab" id="tab-info"       aria-controls="panel-info"       aria-selected="false" tabindex="-1" data-i18n="tab.info">Info</button>
     </nav>
 
     <div class="tabpanes">
@@ -90,57 +105,57 @@
       <section class="tabpane is-active" id="panel-dati" role="tabpanel" aria-labelledby="tab-dati" tabindex="0">
 
         <div class="card">
-          <h2 class="card__title">Dataset «Mostro di Firenze»</h2>
-          <p class="card__hint">Otto duplici omicidi attribuiti alla serie, 1968–1985. I cluster sono raggruppamenti geografici, non cronologici.</p>
+          <h2 class="card__title" data-i18n="data.dataset.title">Dataset «Mostro di Firenze»</h2>
+          <p class="card__hint" data-i18n="data.dataset.hint">Otto duplici omicidi attribuiti alla serie, 1968–1985. I cluster sono raggruppamenti geografici, non cronologici.</p>
           <div class="btn-grid">
-            <button id="btnLoadAll" class="btn">Serie completa <span class="btn__meta">8</span></button>
-            <button id="btnLoadSW"  class="btn">Cluster Sud-Ovest <span class="btn__meta">4</span></button>
-            <button id="btnLoadN"   class="btn">Cluster Nord-Est <span class="btn__meta">3</span></button>
-            <button id="btnClearPoints" class="btn btn--danger">Svuota punti</button>
+            <button id="btnLoadAll" class="btn"><span data-i18n="data.loadAll">Serie completa</span> <span class="btn__meta">8</span></button>
+            <button id="btnLoadSW"  class="btn"><span data-i18n="data.loadSW">Cluster Sud-Ovest</span> <span class="btn__meta">4</span></button>
+            <button id="btnLoadN"   class="btn"><span data-i18n="data.loadNE">Cluster Nord-Est</span> <span class="btn__meta">3</span></button>
+            <button id="btnClearPoints" class="btn btn--danger" data-i18n="data.clear">Svuota punti</button>
           </div>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Inserimento manuale</h2>
+          <h2 class="card__title" data-i18n="data.manual.title">Inserimento manuale</h2>
           <button id="btnAddMode" class="btn btn--toggle" aria-pressed="false">
             <span class="dot" aria-hidden="true"></span>
-            Clic-su-mappa per aggiungere
+            <span data-i18n="data.addMode">Clic-su-mappa per aggiungere</span>
           </button>
-          <p class="card__hint">Con la modalità attiva, ogni clic sulla mappa crea un punto-evento. Clic su un marker esistente per ispezionarlo o rimuoverlo.</p>
+          <p class="card__hint" data-i18n="data.addMode.hint">Con la modalità attiva, ogni clic sulla mappa crea un punto-evento. Clic su un marker esistente per ispezionarlo o rimuoverlo.</p>
 
           <label class="field">
-            <span class="field__label">Coordinate decimali (lat, lon)</span>
+            <span class="field__label" data-i18n="data.coord.label">Coordinate decimali (lat, lon)</span>
             <span class="field__row">
               <input id="coordInput" type="text" inputmode="decimal" placeholder="43.794588, 11.082310" autocomplete="off" />
-              <button id="btnAddCoord" class="btn btn--compact">Aggiungi</button>
+              <button id="btnAddCoord" class="btn btn--compact" data-i18n="data.coord.add">Aggiungi</button>
             </span>
           </label>
-          <p class="card__hint">Accettati anche <code>43.794588 11.082310</code> e <code>43,794588; 11,082310</code>.</p>
+          <p class="card__hint" data-i18n-html="data.coord.hint">Accettati anche <code>43.794588 11.082310</code> e <code>43,794588; 11,082310</code>.</p>
         </div>
 
         <div class="card">
           <div class="card__head">
-            <h2 class="card__title">Punti-evento <span id="pointsCount" class="chip">0</span></h2>
+            <h2 class="card__title"><span data-i18n="data.points.title">Punti-evento</span> <span id="pointsCount" class="chip">0</span></h2>
             <div class="card__tools">
-              <button id="btnUndo" class="icon-btn" title="Annulla (Ctrl+Z)" aria-label="Annulla" disabled>↶</button>
-              <button id="btnRedo" class="icon-btn" title="Ripeti (Ctrl+Y)" aria-label="Ripeti" disabled>↷</button>
-              <button id="btnFit"  class="icon-btn" title="Inquadra tutti i punti" aria-label="Inquadra tutti i punti">⤢</button>
+              <button id="btnUndo" class="icon-btn" data-i18n-title="action.undo.title" data-i18n-label="action.undo" title="Annulla (Ctrl+Z)" aria-label="Annulla" disabled>↶</button>
+              <button id="btnRedo" class="icon-btn" data-i18n-title="action.redo.title" data-i18n-label="action.redo" title="Ripeti (Ctrl+Y)" aria-label="Ripeti" disabled>↷</button>
+              <button id="btnFit"  class="icon-btn" data-i18n-title="action.fit" data-i18n-label="action.fit" title="Inquadra tutti i punti" aria-label="Inquadra tutti i punti">⤢</button>
             </div>
           </div>
           <ol id="pointsList" class="points"></ol>
-          <p id="pointsEmpty" class="empty">Nessun punto. Carica un dataset o clicca sulla mappa.</p>
+          <p id="pointsEmpty" class="empty" data-i18n="data.points.empty">Nessun punto. Carica un dataset o clicca sulla mappa.</p>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Import / Export</h2>
+          <h2 class="card__title" data-i18n="data.io.title">Import / Export</h2>
           <div class="btn-grid">
-            <button id="btnImport" class="btn">Importa CSV/GeoJSON</button>
-            <button id="btnExportCsv" class="btn">Esporta CSV</button>
-            <button id="btnExportGeo" class="btn">Esporta GeoJSON</button>
-            <button id="btnShare" class="btn">Copia link condivisibile</button>
+            <button id="btnImport" class="btn" data-i18n="data.io.import">Importa CSV/GeoJSON</button>
+            <button id="btnExportCsv" class="btn" data-i18n="data.io.exportCsv">Esporta CSV</button>
+            <button id="btnExportGeo" class="btn" data-i18n="data.io.exportGeo">Esporta GeoJSON</button>
+            <button id="btnShare" class="btn" data-i18n="data.io.share">Copia link condivisibile</button>
           </div>
           <input id="fileInput" type="file" accept=".csv,.json,.geojson,text/csv,application/json" hidden />
-          <p class="card__hint">CSV atteso: intestazione con colonne <code>lat</code>, <code>lon</code> (o <code>lng</code>/<code>longitude</code>) ed eventuale <code>label</code>.</p>
+          <p class="card__hint" data-i18n-html="data.io.hint">CSV atteso: intestazione con colonne <code>lat</code>, <code>lon</code> (o <code>lng</code>/<code>longitude</code>) ed eventuale <code>label</code>.</p>
         </div>
       </section>
 
@@ -148,86 +163,86 @@
       <section class="tabpane" id="panel-modello" role="tabpanel" aria-labelledby="tab-modello" tabindex="0" hidden>
 
         <div class="card">
-          <h2 class="card__title">Metodo</h2>
+          <h2 class="card__title" data-i18n="model.method.title">Metodo</h2>
           <label class="field">
-            <span class="field__label">Superficie da calcolare</span>
+            <span class="field__label" data-i18n="model.method.label">Superficie da calcolare</span>
             <select id="method">
-              <option value="rossmo">Rossmo / CGT</option>
-              <option value="kde">KDE - kernel gaussiano</option>
-              <option value="meanCenter">Centro di gravità</option>
-              <option value="journey">Journey-to-crime</option>
+              <option value="rossmo" data-i18n="method.rossmo.label">Rossmo / CGT</option>
+              <option value="kde" data-i18n="method.kde.label">KDE - kernel gaussiano</option>
+              <option value="meanCenter" data-i18n="method.meanCenter.label">Centro di gravità</option>
+              <option value="journey" data-i18n="method.journey.label">Journey-to-crime</option>
             </select>
           </label>
 
           <div class="params" id="p-rossmo">
             <label class="field field--inline">
-              <span class="field__label">Buffer <i>B</i> <span class="unit">km</span></span>
+              <span class="field__label"><span data-i18n-html="param.buffer">Buffer <i>B</i></span> <span class="unit">km</span></span>
               <input id="rossmoB" type="number" step="0.1" min="0.05" value="2.5" />
             </label>
             <label class="field field--inline">
-              <span class="field__label">Decadimento <i>f</i></span>
+              <span class="field__label" data-i18n-html="param.decay">Decadimento <i>f</i></span>
               <input id="rossmoF" type="number" step="0.1" min="0.1" value="1.2" />
             </label>
             <label class="field field--inline">
-              <span class="field__label">Compensazione <i>g</i></span>
+              <span class="field__label" data-i18n-html="param.compensation">Compensazione <i>g</i></span>
               <input id="rossmoG" type="number" step="0.1" min="0.1" value="1.6" />
             </label>
           </div>
 
           <div class="params" id="p-kde" hidden>
             <label class="field field--inline">
-              <span class="field__label">Bandwidth <i>σ</i> <span class="unit">km</span></span>
+              <span class="field__label"><span data-i18n-html="param.bandwidth">Bandwidth <i>σ</i></span> <span class="unit">km</span></span>
               <input id="kdeSigma" type="number" step="0.1" min="0.05" value="2.8" />
             </label>
-            <button id="btnAutoSigma" class="btn btn--compact btn--wide">Stima automatica (Silverman)</button>
+            <button id="btnAutoSigma" class="btn btn--compact btn--wide" data-i18n="param.autoSigma">Stima automatica (Silverman)</button>
           </div>
 
           <div class="params" id="p-meanCenter" hidden>
             <label class="field field--inline">
-              <span class="field__label">Scala <i>σ</i></span>
+              <span class="field__label" data-i18n-html="param.scale">Scala <i>σ</i></span>
               <input id="mcScale" type="number" step="0.1" min="0.1" value="1.1" />
             </label>
-            <p class="card__hint">σ deriva dalla distanza standard dei punti dal baricentro, moltiplicata per questo fattore.</p>
+            <p class="card__hint" data-i18n="param.scale.hint">σ deriva dalla distanza standard dei punti dal baricentro, moltiplicata per questo fattore.</p>
           </div>
 
           <div class="params" id="p-journey" hidden>
             <label class="field field--inline">
-              <span class="field__label">Lambda <i>λ</i> <span class="unit">1/km</span></span>
+              <span class="field__label"><span data-i18n-html="param.lambda">Lambda <i>λ</i></span> <span class="unit">1/km</span></span>
               <input id="journeyLambda" type="number" step="0.05" min="0.01" value="0.25" />
             </label>
-            <p class="card__hint">Distanza di dimezzamento <i>d<sub>½</sub></i> = ln2/λ = <b id="journeyHalf">2,77 km</b>.</p>
+            <p class="card__hint"><span data-i18n-html="param.lambda.hint">Distanza di dimezzamento <i>d<sub>½</sub></i> = ln2/λ = </span><b id="journeyHalf">2,77 km</b>.</p>
           </div>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Metrica &amp; griglia</h2>
+          <h2 class="card__title" data-i18n="model.grid.title">Metrica &amp; griglia</h2>
           <label class="field">
-            <span class="field__label">Metrica di distanza</span>
+            <span class="field__label" data-i18n="model.metric.label">Metrica di distanza</span>
             <select id="distMetric">
-              <option value="haversine">Euclidea geodetica (great-circle)</option>
-              <option value="manhattan">Manhattan (reticolo urbano)</option>
+              <option value="haversine" data-i18n="model.metric.haversine">Euclidea geodetica (great-circle)</option>
+              <option value="manhattan" data-i18n="model.metric.manhattan">Manhattan (reticolo urbano)</option>
             </select>
           </label>
-          <p class="card__hint">Rossmo formulò la CGT su distanza Manhattan, adatta a reticoli urbani. In contesto extraurbano la geodetica è di norma più realistica.</p>
+          <p class="card__hint" data-i18n="model.metric.hint">Rossmo formulò la CGT su distanza Manhattan, adatta a reticoli urbani. In contesto extraurbano la geodetica è di norma più realistica.</p>
 
           <label class="switch">
             <input id="gridAuto" type="checkbox" checked />
-            <span>Risoluzione automatica</span>
+            <span data-i18n="model.grid.auto">Risoluzione automatica</span>
           </label>
           <label class="field field--inline" id="gridStepField">
-            <span class="field__label">Passo griglia <span class="unit">m</span></span>
+            <span class="field__label"><span data-i18n="model.grid.step">Passo griglia</span> <span class="unit">m</span></span>
             <input id="gridStep" type="number" step="25" min="25" value="300" disabled />
           </label>
-          <p class="card__hint" id="gridInfo">La griglia si adatta all'estensione dei punti puntando a ~40 000 celle.</p>
+          <p class="card__hint" id="gridInfo" data-i18n="model.grid.hint">La griglia si adatta all'estensione dei punti puntando a ~40 000 celle.</p>
         </div>
 
         <div class="card card--sticky">
-          <button id="btnRun" class="btn btn--primary btn--wide">Calcola superficie</button>
-          <button id="btnClearSurface" class="btn btn--wide">Rimuovi superficie</button>
+          <button id="btnRun" class="btn btn--primary btn--wide" data-i18n="model.run">Calcola superficie</button>
+          <button id="btnClearSurface" class="btn btn--wide" data-i18n="model.clearSurface">Rimuovi superficie</button>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Come funziona</h2>
+          <h2 class="card__title" data-i18n="model.how.title">Come funziona</h2>
           <div id="methodDesc" class="prose"></div>
         </div>
       </section>
@@ -236,78 +251,86 @@
       <section class="tabpane" id="panel-vista" role="tabpanel" aria-labelledby="tab-vista" tabindex="0" hidden>
 
         <div class="card">
-          <h2 class="card__title">Superficie</h2>
+          <h2 class="card__title" data-i18n="view.surface.title">Superficie</h2>
           <label class="field">
-            <span class="field__label">Scala cromatica</span>
+            <span class="field__label" data-i18n="view.colormap.label">Scala cromatica</span>
             <select id="colormap">
-              <option value="viridis">Viridis - percettivamente uniforme</option>
-              <option value="inferno">Inferno</option>
-              <option value="magma">Magma</option>
-              <option value="cividis">Cividis - ottimizzata per daltonismo</option>
-              <option value="ice">Ghiaccio - tinta singola</option>
+              <option value="viridis" data-i18n="view.colormap.viridis">Viridis - percettivamente uniforme</option>
+              <option value="inferno" data-i18n="view.colormap.inferno">Inferno</option>
+              <option value="magma" data-i18n="view.colormap.magma">Magma</option>
+              <option value="cividis" data-i18n="view.colormap.cividis">Cividis - ottimizzata per daltonismo</option>
+              <option value="ice" data-i18n="view.colormap.ice">Ghiaccio - tinta singola</option>
             </select>
           </label>
 
           <label class="field">
-            <span class="field__label">Mappatura dei valori</span>
+            <span class="field__label" data-i18n="view.colorScale.label">Mappatura dei valori</span>
             <select id="colorScale">
-              <option value="percentile">Percentile d'area (consigliata)</option>
-              <option value="linear">Lineare sulla probabilità</option>
+              <option value="percentile" data-i18n="view.colorScale.percentile">Percentile d'area (consigliata)</option>
+              <option value="linear" data-i18n="view.colorScale.linear">Lineare sulla probabilità</option>
             </select>
           </label>
-          <p class="card__hint">La mappatura per percentile garantisce che la zona di interesse resti sempre leggibile, indipendentemente dall'intervallo dinamico del modello.</p>
+          <p class="card__hint" data-i18n="view.colorScale.hint">La mappatura per percentile garantisce che la zona di interesse resti sempre leggibile, indipendentemente dall'intervallo dinamico del modello.</p>
 
           <label class="field field--inline">
-            <span class="field__label">Opacità</span>
+            <span class="field__label" data-i18n="view.opacity">Opacità</span>
             <input id="opacity" type="range" min="20" max="100" step="5" value="85" />
             <output id="opacityOut" class="unit">85%</output>
           </label>
 
           <label class="field field--inline">
-            <span class="field__label">Soglia inferiore</span>
+            <span class="field__label" data-i18n="view.threshold">Soglia inferiore</span>
             <input id="threshold" type="range" min="0" max="95" step="5" value="0" />
             <output id="thresholdOut" class="unit">0%</output>
           </label>
-          <p class="card__hint">Nasconde le celle sotto il percentile indicato: utile per isolare il nucleo ad alta probabilità.</p>
+          <p class="card__hint" data-i18n="view.threshold.hint">Nasconde le celle sotto il percentile indicato: utile per isolare il nucleo ad alta probabilità.</p>
 
           <label class="switch">
             <input id="showContours" type="checkbox" checked />
-            <span>Isolinee ai percentili 50 / 75 / 90 / 95 / 99</span>
+            <span data-i18n="view.contours">Isolinee ai percentili 50 / 75 / 90 / 95 / 99</span>
           </label>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Mappa</h2>
+          <h2 class="card__title" data-i18n="view.map.title">Mappa</h2>
           <label class="field">
-            <span class="field__label">Mappa di base</span>
+            <span class="field__label" data-i18n="view.basemap.label">Mappa di base</span>
             <select id="basemap">
-              <option value="dark">CARTO Dark Matter</option>
-              <option value="light">CARTO Positron</option>
-              <option value="osm">OpenStreetMap standard</option>
+              <option value="dark" data-i18n="view.basemap.dark">CARTO Dark Matter</option>
+              <option value="light" data-i18n="view.basemap.light">CARTO Positron</option>
+              <option value="osm" data-i18n="view.basemap.osm">OpenStreetMap standard</option>
             </select>
           </label>
           <label class="switch">
             <input id="showLabels" type="checkbox" />
-            <span>Etichette permanenti sui punti</span>
+            <span data-i18n="view.showLabels">Etichette permanenti sui punti</span>
           </label>
           <label class="switch">
             <input id="showCentro" type="checkbox" checked />
-            <span>Indicatori centrografici (baricentro, mediana geometrica)</span>
+            <span data-i18n="view.showCentro">Indicatori centrografici (baricentro, mediana geometrica)</span>
           </label>
           <label class="switch">
             <input id="showEllipse" type="checkbox" />
-            <span>Ellisse di deviazione standard (1σ)</span>
+            <span data-i18n="view.showEllipse">Ellisse di deviazione standard (1σ)</span>
           </label>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Interfaccia</h2>
+          <h2 class="card__title" data-i18n="view.ui.title">Interfaccia</h2>
           <label class="field">
-            <span class="field__label">Tema</span>
+            <span class="field__label" data-i18n="lang.label">Lingua</span>
+            <select id="lang">
+              <option value="it" data-i18n="lang.it">Italiano</option>
+              <option value="en" data-i18n="lang.en">English</option>
+              <option value="auto" data-i18n="lang.auto">Segui il browser</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label" data-i18n="view.theme.label">Tema</span>
             <select id="theme">
-              <option value="dark">Scuro</option>
-              <option value="light">Chiaro</option>
-              <option value="auto">Segui il sistema</option>
+              <option value="dark" data-i18n="view.theme.dark">Scuro</option>
+              <option value="light" data-i18n="view.theme.light">Chiaro</option>
+              <option value="auto" data-i18n="view.theme.auto">Segui il sistema</option>
             </select>
           </label>
         </div>
@@ -317,37 +340,37 @@
       <section class="tabpane" id="panel-risultati" role="tabpanel" aria-labelledby="tab-risultati" tabindex="0" hidden>
 
         <div class="card">
-          <h2 class="card__title">Picchi di probabilità</h2>
-          <p class="card__hint">Massimi locali della superficie, ordinati per probabilità decrescente. Sono l'output operativo di un geoprofilo: le aree da esaminare per prime.</p>
+          <h2 class="card__title" data-i18n="res.peaks.title">Picchi di probabilità</h2>
+          <p class="card__hint" data-i18n="res.peaks.hint">Massimi locali della superficie, ordinati per probabilità decrescente. Sono l'output operativo di un geoprofilo: le aree da esaminare per prime.</p>
           <ol id="peaksList" class="peaks"></ol>
-          <p id="peaksEmpty" class="empty">Calcola una superficie per ottenere i picchi.</p>
+          <p id="peaksEmpty" class="empty" data-i18n="res.peaks.empty">Calcola una superficie per ottenere i picchi.</p>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Hit score</h2>
-          <p class="card__hint">Metrica standard di valutazione di un geoprofilo: la percentuale dell'area di studio da perlustrare, seguendo l'ordine di probabilità, prima di raggiungere un punto di ancoraggio ipotizzato. Più è bassa, più il profilo è informativo.</p>
-          <button id="btnSetAnchor" class="btn btn--wide" aria-pressed="false">Posiziona ipotesi di ancoraggio</button>
+          <h2 class="card__title" data-i18n="res.hit.title">Hit score</h2>
+          <p class="card__hint" data-i18n="res.hit.hint">Metrica standard di valutazione di un geoprofilo: la percentuale dell'area di studio da perlustrare, seguendo l'ordine di probabilità, prima di raggiungere un punto di ancoraggio ipotizzato. Più è bassa, più il profilo è informativo.</p>
+          <button id="btnSetAnchor" class="btn btn--wide" aria-pressed="false" data-i18n="res.hit.setAnchor">Posiziona ipotesi di ancoraggio</button>
           <div id="anchorResult" class="stat-strip" hidden>
             <div class="stat">
-              <span class="stat__label">Hit score</span>
+              <span class="stat__label" data-i18n="res.hit.score">Hit score</span>
               <b class="stat__value" id="hitScore">–</b>
             </div>
             <div class="stat">
-              <span class="stat__label">Area da perlustrare</span>
+              <span class="stat__label" data-i18n="res.hit.area">Area da perlustrare</span>
               <b class="stat__value" id="hitArea">–</b>
             </div>
             <div class="stat">
-              <span class="stat__label">Coordinate</span>
+              <span class="stat__label" data-i18n="res.hit.coord">Coordinate</span>
               <b class="stat__value stat__value--sm" id="anchorCoord">–</b>
             </div>
           </div>
-          <button id="btnClearAnchor" class="btn btn--compact btn--wide" hidden>Rimuovi ancoraggio</button>
+          <button id="btnClearAnchor" class="btn btn--compact btn--wide" data-i18n="res.hit.clearAnchor" hidden>Rimuovi ancoraggio</button>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Statistiche centrografiche</h2>
+          <h2 class="card__title" data-i18n="res.stats.title">Statistiche centrografiche</h2>
           <dl id="statsList" class="stats"></dl>
-          <p id="statsEmpty" class="empty">Servono almeno 2 punti.</p>
+          <p id="statsEmpty" class="empty" data-i18n="res.stats.empty">Servono almeno 2 punti.</p>
         </div>
       </section>
 
@@ -355,113 +378,113 @@
       <section class="tabpane" id="panel-info" role="tabpanel" aria-labelledby="tab-info" tabindex="0" hidden>
 
         <div class="card card--warn">
-          <h2 class="card__title">Avvertenza</h2>
-          <p class="prose">Le superfici prodotte sono <b>indicative e didattiche</b>. Dipendono in modo determinante dai punti inseriti, dalla scala, dalla metrica e dai parametri scelti. Non costituiscono prova, non sostituiscono l'attività investigativa e non identificano persone. L'applicazione non effettua inferenze autonome né correlazioni temporali: elabora esclusivamente i punti forniti.</p>
+          <h2 class="card__title" data-i18n="info.warn.title">Avvertenza</h2>
+          <p class="prose" data-i18n-html="info.warn.body">Le superfici prodotte sono <b>indicative e didattiche</b>. Dipendono in modo determinante dai punti inseriti, dalla scala, dalla metrica e dai parametri scelti. Non costituiscono prova, non sostituiscono l'attività investigativa e non identificano persone. L'applicazione non effettua inferenze autonome né correlazioni temporali: elabora esclusivamente i punti forniti.</p>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Valori di riferimento - caso MdF</h2>
-          <p class="card__hint">Punti di partenza empirici, da verificare caso per caso. «Applica» imposta metodo e parametri.</p>
+          <h2 class="card__title" data-i18n="info.ref.title">Valori di riferimento - caso MdF</h2>
+          <p class="card__hint" data-i18n="info.ref.hint">Punti di partenza empirici, da verificare caso per caso. «Applica» imposta metodo e parametri.</p>
 
           <details class="acc" open>
-            <summary><b>A.</b> Scala provinciale - serie completa</summary>
+            <summary data-i18n-html="info.ref.a"><b>A.</b> Scala provinciale - serie completa</summary>
             <ul class="kv">
-              <li><span>Rossmo/CGT</span><span><i>B</i>=2,5 km · <i>f</i>=1,2 · <i>g</i>=1,6 <button class="btn btn--mini" data-apply="provinciale:rossmo">Applica</button></span></li>
-              <li><span>KDE</span><span><i>σ</i>=2,8 km <button class="btn btn--mini" data-apply="provinciale:kde">Applica</button></span></li>
-              <li><span>Centro di gravità</span><span>scala 1,1× <button class="btn btn--mini" data-apply="provinciale:meanCenter">Applica</button></span></li>
-              <li><span>Journey-to-crime</span><span><i>λ</i>=0,25 (<i>d</i><sub>½</sub>≈2,8 km) <button class="btn btn--mini" data-apply="provinciale:journey">Applica</button></span></li>
+              <li><span data-i18n="method.rossmo.label">Rossmo/CGT</span><span><span data-i18n-html="info.ref.a.rossmo"><i>B</i>=2,5 km · <i>f</i>=1,2 · <i>g</i>=1,6</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="provinciale:rossmo">Applica</button></span></li>
+              <li><span data-i18n="method.kde.label">KDE</span><span><span data-i18n-html="info.ref.a.kde"><i>σ</i>=2,8 km</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="provinciale:kde">Applica</button></span></li>
+              <li><span data-i18n="method.meanCenter.label">Centro di gravità</span><span><span data-i18n-html="info.ref.a.mc">scala 1,1×</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="provinciale:meanCenter">Applica</button></span></li>
+              <li><span data-i18n="method.journey.label">Journey-to-crime</span><span><span data-i18n-html="info.ref.a.jtc"><i>λ</i>=0,25 (<i>d</i><sub>½</sub>≈2,8 km)</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="provinciale:journey">Applica</button></span></li>
             </ul>
           </details>
 
           <details class="acc">
-            <summary><b>B.</b> Cluster Sud-Ovest</summary>
+            <summary data-i18n-html="info.ref.b"><b>B.</b> Cluster Sud-Ovest</summary>
             <ul class="kv">
-              <li><span>Rossmo/CGT</span><span><i>B</i>=1,0 km · <i>f</i>=1,4 · <i>g</i>=1,8 <button class="btn btn--mini" data-apply="clusterSW:rossmo">Applica</button></span></li>
-              <li><span>KDE</span><span><i>σ</i>=0,9 km <button class="btn btn--mini" data-apply="clusterSW:kde">Applica</button></span></li>
-              <li><span>Centro di gravità</span><span>scala 0,9× <button class="btn btn--mini" data-apply="clusterSW:meanCenter">Applica</button></span></li>
-              <li><span>Journey-to-crime</span><span><i>λ</i>=0,60 <button class="btn btn--mini" data-apply="clusterSW:journey">Applica</button></span></li>
+              <li><span data-i18n="method.rossmo.label">Rossmo/CGT</span><span><span data-i18n-html="info.ref.b.rossmo"><i>B</i>=1,0 km · <i>f</i>=1,4 · <i>g</i>=1,8</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="clusterSW:rossmo">Applica</button></span></li>
+              <li><span data-i18n="method.kde.label">KDE</span><span><span data-i18n-html="info.ref.b.kde"><i>σ</i>=0,9 km</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="clusterSW:kde">Applica</button></span></li>
+              <li><span data-i18n="method.meanCenter.label">Centro di gravità</span><span><span data-i18n-html="info.ref.b.mc">scala 0,9×</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="clusterSW:meanCenter">Applica</button></span></li>
+              <li><span data-i18n="method.journey.label">Journey-to-crime</span><span><span data-i18n-html="info.ref.b.jtc"><i>λ</i>=0,60</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="clusterSW:journey">Applica</button></span></li>
             </ul>
           </details>
 
           <details class="acc">
-            <summary><b>C.</b> Cluster Nord-Est</summary>
+            <summary data-i18n-html="info.ref.c"><b>C.</b> Cluster Nord-Est</summary>
             <ul class="kv">
-              <li><span>Rossmo/CGT</span><span><i>B</i>=1,2 km · <i>f</i>=1,3 · <i>g</i>=1,7 <button class="btn btn--mini" data-apply="clusterN:rossmo">Applica</button></span></li>
-              <li><span>KDE</span><span><i>σ</i>=1,2 km <button class="btn btn--mini" data-apply="clusterN:kde">Applica</button></span></li>
-              <li><span>Centro di gravità</span><span>scala 1,0× <button class="btn btn--mini" data-apply="clusterN:meanCenter">Applica</button></span></li>
-              <li><span>Journey-to-crime</span><span><i>λ</i>=0,50 <button class="btn btn--mini" data-apply="clusterN:journey">Applica</button></span></li>
+              <li><span data-i18n="method.rossmo.label">Rossmo/CGT</span><span><span data-i18n-html="info.ref.c.rossmo"><i>B</i>=1,2 km · <i>f</i>=1,3 · <i>g</i>=1,7</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="clusterN:rossmo">Applica</button></span></li>
+              <li><span data-i18n="method.kde.label">KDE</span><span><span data-i18n-html="info.ref.c.kde"><i>σ</i>=1,2 km</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="clusterN:kde">Applica</button></span></li>
+              <li><span data-i18n="method.meanCenter.label">Centro di gravità</span><span><span data-i18n-html="info.ref.c.mc">scala 1,0×</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="clusterN:meanCenter">Applica</button></span></li>
+              <li><span data-i18n="method.journey.label">Journey-to-crime</span><span><span data-i18n-html="info.ref.c.jtc"><i>λ</i>=0,50</span> <button class="btn btn--mini" data-i18n="action.apply" data-apply="clusterN:journey">Applica</button></span></li>
             </ul>
           </details>
 
           <details class="acc">
-            <summary>Come si scelgono i parametri</summary>
+            <summary data-i18n="info.choose.title">Come si scelgono i parametri</summary>
             <ul class="bullets">
-              <li><b>Passo griglia</b> - circa 1/200 della diagonale del bounding box; l'automatismo lo calcola per te.</li>
-              <li><b>Buffer <i>B</i></b> - ordine di grandezza della «zona cuscinetto» attorno alla base: 0,8–1,5 km su cluster, 2–3 km su scala provinciale.</li>
-              <li><b><i>f</i> e <i>g</i></b> - esponenti di decadimento fuori e dentro il buffer: <i>f</i> 1,2–1,5, <i>g</i> 1,6–1,9.</li>
-              <li><b>σ (KDE)</b> - la stima di Silverman è un buon punto di partenza; in alternativa 0,8× la mediana delle distanze al primo vicino.</li>
-              <li><b>λ (JTC)</b> - scegli la distanza di dimezzamento <i>d</i><sub>½</sub> plausibile e poni λ = ln2 / <i>d</i><sub>½</sub>.</li>
+              <li data-i18n-html="info.choose.grid"><b>Passo griglia</b> - circa 1/200 della diagonale del bounding box; l'automatismo lo calcola per te.</li>
+              <li data-i18n-html="info.choose.buffer"><b>Buffer <i>B</i></b> - ordine di grandezza della «zona cuscinetto» attorno alla base: 0,8–1,5 km su cluster, 2–3 km su scala provinciale.</li>
+              <li data-i18n-html="info.choose.fg"><b><i>f</i> e <i>g</i></b> - esponenti di decadimento fuori e dentro il buffer: <i>f</i> 1,2–1,5, <i>g</i> 1,6–1,9.</li>
+              <li data-i18n-html="info.choose.sigma"><b>σ (KDE)</b> - la stima di Silverman è un buon punto di partenza; in alternativa 0,8× la mediana delle distanze al primo vicino.</li>
+              <li data-i18n-html="info.choose.lambda"><b>λ (JTC)</b> - scegli la distanza di dimezzamento <i>d</i><sub>½</sub> plausibile e poni λ = ln2 / <i>d</i><sub>½</sub>.</li>
             </ul>
           </details>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Opinione dell'autore</h2>
-          <p class="prose">L'autore ritiene, <b>a titolo puramente personale</b>, che la pista del «Rosso del Mugello» sia la più solida fra le ipotesi considerate. È un'opinione, non un fatto accertato, e non discende dai calcoli di questa applicazione.</p>
+          <h2 class="card__title" data-i18n="info.opinion.title">Opinione dell'autore</h2>
+          <p class="prose" data-i18n-html="info.opinion.body">L'autore ritiene, <b>a titolo puramente personale</b>, che la pista del «Rosso del Mugello» sia la più solida fra le ipotesi considerate. È un'opinione, non un fatto accertato, e non discende dai calcoli di questa applicazione.</p>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Privacy e dati</h2>
-          <p class="prose">Il calcolo avviene <b>interamente nel browser</b>: nessun punto-evento lascia il tuo dispositivo. I punti inseriti sono salvati solo in <code>localStorage</code>, in locale.</p>
-          <p class="prose">Il traffico verso l'esterno riguarda: le librerie da CDN (unpkg), le tile cartografiche (OpenStreetMap / CARTO) e <b>Google Analytics</b>, che raccoglie statistiche di navigazione aggregate. Puoi bloccarlo con un qualsiasi content blocker senza perdere alcuna funzionalità.</p>
+          <h2 class="card__title" data-i18n="info.privacy.title">Privacy e dati</h2>
+          <p class="prose" data-i18n-html="info.privacy.p1">Il calcolo avviene <b>interamente nel browser</b>: nessun punto-evento lascia il tuo dispositivo. I punti inseriti sono salvati solo in <code>localStorage</code>, in locale.</p>
+          <p class="prose" data-i18n-html="info.privacy.p2">Il traffico verso l'esterno riguarda: le librerie da CDN (unpkg), le tile cartografiche (OpenStreetMap / CARTO) e <b>Google Analytics</b>, che raccoglie statistiche di navigazione aggregate. Puoi bloccarlo con un qualsiasi content blocker senza perdere alcuna funzionalità.</p>
         </div>
 
         <div class="card">
-          <h2 class="card__title">Crediti</h2>
+          <h2 class="card__title" data-i18n="info.credits.title">Crediti</h2>
           <ul class="bullets">
-            <li>Cartografia © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors · tile © <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>.</li>
-            <li>Motore mappa: <a href="https://leafletjs.com/" target="_blank" rel="noopener noreferrer">Leaflet 1.9.4</a>. Nessun'altra dipendenza.</li>
-            <li>Scale cromatiche: viridis, inferno, magma, cividis (matplotlib, licenza CC0).</li>
-            <li>Licenza del progetto: BSD 2-Clause · © 2025 Giuseppe Sorgentone.</li>
+            <li data-i18n-html="info.credits.maps">Cartografia © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors · tile © <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>.</li>
+            <li data-i18n-html="info.credits.engine">Motore mappa: <a href="https://leafletjs.com/" target="_blank" rel="noopener noreferrer">Leaflet 1.9.4</a>. Nessun'altra dipendenza.</li>
+            <li data-i18n="info.credits.colormaps">Scale cromatiche: viridis, inferno, magma, cividis (matplotlib, licenza CC0).</li>
+            <li data-i18n="info.credits.license">Licenza del progetto: BSD 2-Clause · © 2025 Giuseppe Sorgentone.</li>
           </ul>
           <a class="gh" href="https://github.com/Cepeppe/criminal-geoprofiler" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 16 16" aria-hidden="true" width="18" height="18"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82a7.63 7.63 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
             github.com/Cepeppe/criminal-geoprofiler
           </a>
-          <button id="btnOpenTutorial" class="btn btn--wide">Rivedi il tutorial</button>
-          <button id="btnResetAll" class="btn btn--danger btn--wide">Ripristina impostazioni di fabbrica</button>
+          <button id="btnOpenTutorial" class="btn btn--wide" data-i18n="info.credits.tutorial">Rivedi il tutorial</button>
+          <button id="btnResetAll" class="btn btn--danger btn--wide" data-i18n="info.credits.reset">Ripristina impostazioni di fabbrica</button>
         </div>
       </section>
     </div>
   </aside>
 
-  <div id="resizer" class="resizer" role="separator" aria-orientation="vertical" aria-label="Ridimensiona pannello" tabindex="0"></div>
+  <div id="resizer" class="resizer" role="separator" aria-orientation="vertical" data-i18n-label="app.resizerLabel" aria-label="Ridimensiona pannello" tabindex="0"></div>
 
   <!-- ══════════════════════ MAPPA ══════════════════════ -->
   <main class="stage">
     <div id="map"></div>
 
     <div class="overlay overlay--tl" id="kpiBar">
-      <div class="tile"><span class="tile__label">Punti</span><b class="tile__value" id="kpiPoints">0</b></div>
-      <div class="tile"><span class="tile__label">Celle</span><b class="tile__value" id="kpiCells">–</b></div>
-      <div class="tile"><span class="tile__label">Risoluzione</span><b class="tile__value" id="kpiRes">–</b></div>
-      <div class="tile"><span class="tile__label">Calcolo</span><b class="tile__value" id="kpiTime">–</b></div>
+      <div class="tile"><span class="tile__label" data-i18n="kpi.points">Punti</span><b class="tile__value" id="kpiPoints">0</b></div>
+      <div class="tile"><span class="tile__label" data-i18n="kpi.cells">Celle</span><b class="tile__value" id="kpiCells">–</b></div>
+      <div class="tile"><span class="tile__label" data-i18n="kpi.res">Risoluzione</span><b class="tile__value" id="kpiRes">–</b></div>
+      <div class="tile"><span class="tile__label" data-i18n="kpi.time">Calcolo</span><b class="tile__value" id="kpiTime">–</b></div>
     </div>
 
     <div class="overlay overlay--br legend" id="legendCard" hidden>
       <div class="legend__head">
-        <span class="legend__title" id="legendTitle">Probabilità relativa</span>
-        <span class="legend__stale" id="legendStale" hidden title="I punti o i parametri sono cambiati dopo l'ultimo calcolo">non aggiornata</span>
-        <button id="btnLegendToggle" class="icon-btn icon-btn--sm" aria-label="Comprimi legenda" aria-expanded="true">–</button>
+        <span class="legend__title" id="legendTitle" data-i18n="legend.title">Probabilità relativa</span>
+        <span class="legend__stale" id="legendStale" hidden data-i18n="legend.stale" data-i18n-title="legend.stale.title" title="I punti o i parametri sono cambiati dopo l'ultimo calcolo">non aggiornata</span>
+        <button id="btnLegendToggle" class="icon-btn icon-btn--sm" data-i18n-label="legend.collapse" aria-label="Comprimi legenda" aria-expanded="true">–</button>
       </div>
       <div class="legend__body" id="legendBody">
-        <canvas id="legendRamp" class="legend__ramp" width="240" height="14" role="img" aria-label="Scala cromatica dalla probabilità minima alla massima"></canvas>
-        <div class="legend__scale" id="legendScale"><span>basso</span><span>alto</span></div>
+        <canvas id="legendRamp" class="legend__ramp" width="240" height="14" role="img" data-i18n-label="legend.ramp" aria-label="Scala cromatica dalla probabilità minima alla massima"></canvas>
+        <div class="legend__scale" id="legendScale"><span data-i18n="legend.low">basso</span><span data-i18n="legend.high">alto</span></div>
         <div class="legend__notes" id="legendNotes"></div>
       </div>
     </div>
 
-    <button id="btnOpenSidebar" class="fab only-mobile" aria-label="Apri pannello" aria-expanded="false">☰</button>
+    <button id="btnOpenSidebar" class="fab only-mobile" data-i18n-label="app.openSidebar" aria-label="Apri pannello" aria-expanded="false">☰</button>
   </main>
 </div>
 
@@ -471,32 +494,28 @@
 <!-- ══════════════════════ TUTORIAL ══════════════════════ -->
 <div id="tutorialModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="tutTitle" hidden>
   <div class="modal" role="document">
-    <button class="modal__close icon-btn" id="btnCloseTutorial" aria-label="Chiudi">✕</button>
-    <p class="modal__eyebrow">Benvenuto</p>
+    <button class="modal__close icon-btn" id="btnCloseTutorial" data-i18n-label="action.close" aria-label="Chiudi">✕</button>
+    <p class="modal__eyebrow" data-i18n="tut.eyebrow">Benvenuto</p>
     <h2 id="tutTitle">Criminal Geoprofiler</h2>
-    <p class="prose">Strumento didattico di <b>geoprofilazione criminale</b>. A partire da una serie di punti-evento georiferiti, stima dove è più probabile si trovi il <i>punto di ancoraggio</i> dell'autore (residenza, luogo di lavoro, base operativa).</p>
+    <p class="prose" data-i18n-html="tut.intro">Strumento didattico di <b>geoprofilazione criminale</b>. A partire da una serie di punti-evento georiferiti, stima dove è più probabile si trovi il <i>punto di ancoraggio</i> dell'autore (residenza, luogo di lavoro, base operativa).</p>
     <ol class="modal__steps">
-      <li><b>Carica i punti</b> - usa il dataset MdF nella scheda <i>Dati</i>, oppure clicca sulla mappa.</li>
-      <li><b>Scegli il modello</b> - Rossmo/CGT, KDE, centro di gravità o journey-to-crime, nella scheda <i>Modello</i>.</li>
-      <li><b>Calcola</b> - la superficie compare sulla mappa con isolinee ai percentili; i picchi sono elencati in <i>Risultati</i>.</li>
+      <li data-i18n-html="tut.step1"><b>Carica i punti</b> - usa il dataset MdF nella scheda <i>Dati</i>, oppure clicca sulla mappa.</li>
+      <li data-i18n-html="tut.step2"><b>Scegli il modello</b> - Rossmo/CGT, KDE, centro di gravità o journey-to-crime, nella scheda <i>Modello</i>.</li>
+      <li data-i18n-html="tut.step3"><b>Calcola</b> - la superficie compare sulla mappa con isolinee ai percentili; i picchi sono elencati in <i>Risultati</i>.</li>
     </ol>
-    <p class="modal__warn">Le superfici sono indicative e didattiche: non costituiscono prova né sostituiscono attività investigative.</p>
-    <label class="switch modal__dontshow">
-      <input id="tutDontShow" type="checkbox" />
-      <span>Non mostrare più all'avvio</span>
-    </label>
+    <p class="modal__warn" data-i18n="tut.warn">Le superfici sono indicative e didattiche: non costituiscono prova né sostituiscono attività investigative.</p>
     <div class="modal__actions">
-      <button class="btn btn--primary" id="btnStart">Inizia</button>
+      <button class="btn btn--primary" id="btnStart" data-i18n="tut.start">Inizia</button>
     </div>
   </div>
 </div>
 
 <div id="fileGuard" class="file-guard" hidden>
   <div class="file-guard__box">
-    <h2>Serve un server locale</h2>
-    <p>Questa pagina usa moduli JavaScript, che i browser non caricano dal protocollo <code>file://</code>. Avvia un server statico nella cartella del progetto:</p>
+    <h2 data-i18n="guard.title">Serve un server locale</h2>
+    <p data-i18n-html="guard.p1">Questa pagina usa moduli JavaScript, che i browser non caricano dal protocollo <code>file://</code>. Avvia un server statico nella cartella del progetto:</p>
     <pre><code>python -m http.server 8000</code></pre>
-    <p>poi apri <code>http://localhost:8000</code>. Online (GitHub Pages) funziona senza alcuna configurazione.</p>
+    <p data-i18n-html="guard.p2">poi apri <code>http://localhost:8000</code>. Online (GitHub Pages) funziona senza alcuna configurazione.</p>
   </div>
 </div>
 

@@ -9,6 +9,7 @@
 import { BASEMAPS } from './data.js';
 import { ellipseRing } from './geo.js';
 import { fmtCoord } from './dom.js';
+import { t } from './i18n.js';
 
 const FLORENCE = [43.79, 11.25];
 
@@ -122,7 +123,7 @@ export function createMapView(containerId, {
 
     const title = document.createElement('div');
     title.className = 'popup-title';
-    title.textContent = point.label || `Punto ${index + 1}`;
+    title.textContent = point.label || t('data.point.n', { n: index + 1 });
     wrap.appendChild(title);
 
     const coord = document.createElement('div');
@@ -134,7 +135,7 @@ export function createMapView(containerId, {
     actions.className = 'popup-actions';
     const del = document.createElement('button');
     del.className = 'btn btn--compact btn--danger';
-    del.textContent = 'Rimuovi punto';
+    del.textContent = t('action.removePoint');
     del.addEventListener('click', () => { map.closePopup(); onRemovePoint?.(index); });
     actions.appendChild(del);
     wrap.appendChild(actions);
@@ -157,10 +158,10 @@ export function createMapView(containerId, {
 
     anchorMarker = L.marker([anchor.lat, anchor.lng], {
       icon: L.divIcon({ className: 'anchor-marker', html: '⌂', iconSize: [30, 30], iconAnchor: [15, 15] }),
-      title: 'Ipotesi di ancoraggio',
+      title: t('map.anchor'),
       zIndexOffset: 500,
     }).addTo(map);
-    anchorMarker.bindTooltip('Ipotesi di ancoraggio', { direction: 'top', offset: [0, -17], className: 'evt-label' });
+    anchorMarker.bindTooltip(t('map.anchor'), { direction: 'top', offset: [0, -17], className: 'evt-label' });
   }
 
   /* ─────────────────── Indicatori centrografici ─────────────────── */
@@ -186,14 +187,14 @@ export function createMapView(containerId, {
       L.marker([centroid.lat, centroid.lng], {
         icon: L.divIcon({ className: 'centro-marker', html: '', iconSize: [16, 16], iconAnchor: [8, 8] }),
         interactive: true,
-      }).bindTooltip('Baricentro', { direction: 'top', offset: [0, -10], className: 'evt-label' })
+      }).bindTooltip(t('map.centroid'), { direction: 'top', offset: [0, -10], className: 'evt-label' })
         .addTo(centroLayer);
     }
     if (median) {
       L.marker([median.lat, median.lng], {
         icon: L.divIcon({ className: 'centro-marker centro-marker--median', html: '', iconSize: [16, 16], iconAnchor: [8, 8] }),
         interactive: true,
-      }).bindTooltip('Mediana geometrica', { direction: 'top', offset: [0, -10], className: 'evt-label' })
+      }).bindTooltip(t('map.median'), { direction: 'top', offset: [0, -10], className: 'evt-label' })
         .addTo(centroLayer);
     }
   }
